@@ -1,5 +1,5 @@
 # Makefile for Merki Project
-.PHONY: help build test test-race lint run generate deps docker-build docker-up docker-down docker-server-up docker-auth-up migrate-up migrate-down clean swagger coverage mobile-apk
+.PHONY: help build test test-race lint run generate deps docker-build docker-up docker-down docker-server-up docker-auth-up migrate-up migrate-down clean swagger coverage mobile-apk mobile-aab
 
 # Variables
 BINARY_NAME=merki-server
@@ -36,6 +36,7 @@ help:
 	@echo "  ${GREEN}swagger${NC}           - Generate Swagger/OpenAPI documentation"
 	@echo "  ${GREEN}coverage${NC}          - Generate test coverage report"
 	@echo "  ${GREEN}mobile-apk${NC}        - Build a shareable Android APK (release)"
+	@echo "  ${GREEN}mobile-aab${NC}        - Build Android App Bundle (.aab) for production with EAS"
 
 # Example: make build
 ## Build: Build the backend binary
@@ -182,6 +183,12 @@ mobile-apk:
 	DEST=mobile/android/app/build/outputs/apk/release/$${APP_NAME}-$${VER}.apk; \
 	cp "$$APK" "$$DEST"; \
 	echo "${GREEN}APK listo: $$DEST${NC}"
+
+# Example: make mobile-aab
+## Mobile: Build Android App Bundle (.aab) for production with EAS
+mobile-aab:
+	@echo "${YELLOW}Building Android App Bundle con EAS (production)...${NC}"
+	cd mobile && npx eas build --platform android --profile production
 
 ## Default target
 default: help

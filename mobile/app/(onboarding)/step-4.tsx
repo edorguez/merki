@@ -10,7 +10,7 @@ export default function OnboardingStep4() {
       image={IMAGE}
       title="Cuentas claras y adiós "
       titleAccent="pena"
-      subtitle="Llega a la caja sabiendo exactamente cuánto vas a pagar. Sin sorpresas, sin caras rojas."
+      subtitle="Llega a la caja sabiendo exactamente cuánto vas a pagar. Sin sorpresas, con cuentas claras."
       imageAnimatedStyle={float}
     />
   );

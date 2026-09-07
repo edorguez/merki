@@ -8,6 +8,7 @@ import { useCountUp, usePulse } from '../../hooks/animations';
 import { useBCV, type BCVRateRef } from '../../store/bcvStore';
 import { formatDate } from '../../utils/dateUtils';
 import { Skeleton } from '../shared/Skeleton';
+import { Button } from '../Button';
 import Animated from 'react-native-reanimated';
 
 const stylesheet = StyleSheet.create(theme => {
@@ -133,6 +134,14 @@ export const BCVRateCard = forwardRef<BCVRateRef, object>((_props, ref) => {
         <Text style={{ color: theme.colors.emberOrange, fontSize: theme.typography.fontSize.sm }}>
           Tasa BCV no disponible
         </Text>
+        <View style={{ marginTop: theme.spacing.sm }}>
+          <Button
+            title="Reintentar"
+            variant="outline"
+            size="small"
+            onPress={() => loadRate(true)}
+          />
+        </View>
       </View>
     );
   }

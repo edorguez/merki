@@ -88,9 +88,9 @@ export async function loadRate(force = false): Promise<void> {
       emit({ ...state, rate: cachedRate });
     }
 
-    if (!force && loadedOnce) return;
+    if (!force && loadedOnce && state.rate) return;
 
-    emit({ ...state, isLoading: true });
+    emit({ ...state, isLoading: true, error: state.rate ? state.error : null });
 
     try {
       const response = await getBCVRates();
