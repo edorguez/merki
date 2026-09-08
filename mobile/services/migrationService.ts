@@ -36,8 +36,9 @@ export const migrationService = {
           id: cart.id,
           supermarketId: isCustom ? undefined : cart.supermarketId,
           newSupermarket: isCustom ? { name: cart.supermarketName } : undefined,
-          budgetBs: toCents(cart.budgetBs),
-          budgetUsd: toCents(cart.budgetUsd),
+          hasBudget: cart.hasBudget,
+          budgetBs: cart.hasBudget ? toCents(cart.budgetBs) : null,
+          budgetUsd: cart.hasBudget ? toCents(cart.budgetUsd) : null,
           userId: newUserId,
         });
 

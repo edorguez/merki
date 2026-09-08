@@ -6,6 +6,7 @@ export interface LocalCart {
   supermarketName: string;
   userId?: string;
   isActive: boolean;
+  hasBudget: boolean;
   budgetBs: number;
   budgetUsd: number;
   totalEstimatedBs: number | null;
@@ -37,7 +38,7 @@ export interface LocalCartProduct {
 
 // expo-sqlite returns rows keyed by snake_case column names; alias them so the
 // camelCase interface fields are populated.
-const CART_COLUMNS = `id, supermarket_id AS supermarketId, supermarket_name AS supermarketName, user_id AS userId, is_active AS isActive, budget_bs AS budgetBs, budget_usd AS budgetUsd, total_estimated_bs AS totalEstimatedBs, total_estimated_usd AS totalEstimatedUsd, created_at AS createdAt, updated_at AS updatedAt, deleted_at AS deletedAt, synced_at AS syncedAt`;
+const CART_COLUMNS = `id, supermarket_id AS supermarketId, supermarket_name AS supermarketName, user_id AS userId, is_active AS isActive, has_budget AS hasBudget, budget_bs AS budgetBs, budget_usd AS budgetUsd, total_estimated_bs AS totalEstimatedBs, total_estimated_usd AS totalEstimatedUsd, created_at AS createdAt, updated_at AS updatedAt, deleted_at AS deletedAt, synced_at AS syncedAt`;
 
 export const CART_PRODUCT_COLUMNS = `id, cart_id AS cartId, product_id AS productId, name, price_bs AS priceBs, price_usd AS priceUsd, quantity, is_manual_entry AS isManualEntry, image_url AS imageUrl, supermarket, created_at AS createdAt, updated_at AS updatedAt, deleted_at AS deletedAt`;
 
@@ -53,6 +54,7 @@ export const cartRepository = {
     return rows.map(r => ({
       ...r,
       isActive: Boolean(r.isActive),
+      hasBudget: Boolean(r.hasBudget),
     }));
   },
 
@@ -72,6 +74,7 @@ export const cartRepository = {
     return {
       ...cart,
       isActive: Boolean(cart.isActive),
+      hasBudget: Boolean(cart.hasBudget),
       products: products.map(p => ({
         ...p,
         isManualEntry: Boolean(p.isManualEntry),
@@ -85,6 +88,7 @@ export const cartRepository = {
     supermarketName: string;
     userId?: string;
     isActive?: boolean;
+    hasBudget?: boolean;
     budgetBs: number;
     budgetUsd: number;
   }): Promise<LocalCart> {
@@ -100,7 +104,7 @@ export const cartRepository = {
     if (existing) {
       await database.runAsync(
         `UPDATE carts SET
-          supermarket_id = ?, supermarket_name = ?, is_active = ?,
+          supermarket_id = ?, supermarket_name = ?, is_active = ?, has_budget = ?,
           budget_bs = ?, budget_usd = ?,
           total_estimated_bs = ?, total_estimated_usd = ?,
           updated_at = ?
@@ -109,6 +113,7 @@ export const cartRepository = {
           cart.supermarketId,
           cart.supermarketName,
           cart.isActive !== false ? 1 : 0,
+          cart.hasBudget !== false ? 1 : 0,
           cart.budgetBs,
           cart.budgetUsd,
           existing.totalEstimatedBs,
@@ -119,14 +124,15 @@ export const cartRepository = {
       );
     } else {
       await database.runAsync(
-        `INSERT INTO carts (id, supermarket_id, supermarket_name, user_id, is_active, budget_bs, budget_usd, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO carts (id, supermarket_id, supermarket_name, user_id, is_active, has_budget, budget_bs, budget_usd, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           cart.supermarketId,
           cart.supermarketName,
           cart.userId || null,
           cart.isActive !== false ? 1 : 0,
+          cart.hasBudget !== false ? 1 : 0,
           cart.budgetBs,
           cart.budgetUsd,
           now,
@@ -147,6 +153,10 @@ export const cartRepository = {
     if (updates.isActive !== undefined) {
       fields.push('is_active = ?');
       values.push(updates.isActive ? 1 : 0);
+    }
+    if (updates.hasBudget !== undefined) {
+      fields.push('has_budget = ?');
+      values.push(updates.hasBudget ? 1 : 0);
     }
     if (updates.budgetBs !== undefined) {
       fields.push('budget_bs = ?');
@@ -211,6 +221,7 @@ export const cartRepository = {
     return rows.map(r => ({
       ...r,
       isActive: true,
+      hasBudget: Boolean(r.hasBudget),
     }));
   },
 

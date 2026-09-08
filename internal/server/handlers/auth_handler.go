@@ -38,8 +38,7 @@ func (h *AuthHandler) SyncUser(c *gin.Context) {
 	}
 
 	var req dto.SyncUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 
@@ -112,8 +111,7 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 
 func (h *AuthHandler) RequestPasswordReset(c *gin.Context) {
 	var req dto.ForgotPasswordRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 
@@ -165,8 +163,7 @@ func (h *AuthHandler) MigrateUserData(c *gin.Context) {
 	}
 
 	var req dto.MigrateUserDataRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 

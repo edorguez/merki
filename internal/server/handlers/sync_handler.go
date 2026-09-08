@@ -30,8 +30,7 @@ func NewSyncHandler(syncService services.SyncService, log *logger.Logger) *SyncH
 
 func (h *SyncHandler) ProcessSync(c *gin.Context) {
 	var req dto.SyncRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 

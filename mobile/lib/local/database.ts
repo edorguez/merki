@@ -26,6 +26,7 @@ const MIGRATIONS = [
         supermarket_name TEXT NOT NULL DEFAULT '',
         user_id TEXT,
         is_active INTEGER NOT NULL DEFAULT 1,
+        has_budget INTEGER NOT NULL DEFAULT 1,
         budget_bs REAL NOT NULL DEFAULT 0,
         budget_usd REAL NOT NULL DEFAULT 0,
         total_estimated_bs REAL,
@@ -69,11 +70,7 @@ const MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON sync_queue(status);
       CREATE INDEX IF NOT EXISTS idx_carts_user_id ON carts(user_id);
       CREATE INDEX IF NOT EXISTS idx_carts_synced ON carts(synced_at);
-    `,
-  },
-  {
-    version: 2,
-    sql: `
+
       CREATE TABLE IF NOT EXISTS auth_cache (
         id TEXT PRIMARY KEY,
         session_data TEXT NOT NULL,

@@ -339,17 +339,30 @@ func (s *syncService) handleCartInsert(ctx context.Context, userID uuid.UUID, op
 		return nil, err
 	}
 
-	budgetBs := int64(0)
-	budgetUsd := int64(0)
+	hasBudget := true
+	if v, ok := op.Payload["hasBudget"].(bool); ok {
+		hasBudget = v
+	}
 
+	var budgetBs, budgetUsd *int64
 	if v, ok := op.Payload["budgetBs"].(float64); ok {
-		budgetBs = int64(v)
+		bs := int64(v)
+		budgetBs = &bs
 	}
 	if v, ok := op.Payload["budgetUsd"].(float64); ok {
-		budgetUsd = int64(v)
+		usd := int64(v)
+		budgetUsd = &usd
 	}
 
-	cart := models.NewCart(userID, supermarketID, true, budgetBs, budgetUsd)
+	if dto.MissingBudgetAmounts(hasBudget, budgetBs, budgetUsd) {
+		return nil, fmt.Errorf("budgetBs y budgetUsd son obligatorios cuando el carrito tiene presupuesto")
+	}
+	if !hasBudget {
+		budgetBs = nil
+		budgetUsd = nil
+	}
+
+	cart := models.NewCart(userID, supermarketID, true, hasBudget, budgetBs, budgetUsd)
 	cart.ID = uuid.New()
 	cart.LocalID = op.LocalID
 
@@ -442,11 +455,25 @@ func (s *syncService) handleCartUpdate(ctx context.Context, userID uuid.UUID, op
 	if isActive, ok := op.Payload["isActive"].(bool); ok {
 		existing.IsActive = isActive
 	}
-	if budgetBs, ok := op.Payload["budgetBs"].(float64); ok {
-		existing.BudgetBs = int64(budgetBs)
+
+	if hasBudget, ok := op.Payload["hasBudget"].(bool); ok {
+		existing.HasBudget = hasBudget
+		if !hasBudget {
+			existing.BudgetBs = nil
+			existing.BudgetUsd = nil
+		}
 	}
-	if budgetUsd, ok := op.Payload["budgetUsd"].(float64); ok {
-		existing.BudgetUsd = int64(budgetUsd)
+	if v, ok := op.Payload["budgetBs"].(float64); ok {
+		bs := int64(v)
+		existing.BudgetBs = &bs
+	}
+	if v, ok := op.Payload["budgetUsd"].(float64); ok {
+		usd := int64(v)
+		existing.BudgetUsd = &usd
+	}
+
+	if dto.MissingBudgetAmounts(existing.HasBudget, existing.BudgetBs, existing.BudgetUsd) {
+		return nil, fmt.Errorf("budgetBs y budgetUsd son obligatorios cuando el carrito tiene presupuesto")
 	}
 
 	if err := s.cartRepo.Update(ctx, existing); err != nil {

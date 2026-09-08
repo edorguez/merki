@@ -85,8 +85,9 @@ export default function CartDetailScreen() {
             })),
             totalBs: apiCart.totalEstimatedBs ?? 0,
             totalUsd: apiCart.totalEstimatedUsd ?? 0,
-            budgetBs: apiCart.budgetBs,
-            budgetUsd: apiCart.budgetUsd,
+            hasBudget: apiCart.hasBudget,
+            budgetBs: apiCart.budgetBs ?? 0,
+            budgetUsd: apiCart.budgetUsd ?? 0,
           });
         })
         .catch(() => {})
@@ -263,8 +264,9 @@ export default function CartDetailScreen() {
 
   const totalBs = cart.totalBs || 0;
   const totalUsd = cart.totalUsd || 0;
-  const budgetBs = cart.budgetBs || 4000;
-  const budgetUsd = cart.budgetUsd || 109;
+  const budgetBs = cart.budgetBs;
+  const budgetUsd = cart.budgetUsd;
+  const hasBudget = cart.hasBudget;
 
   const styles = createCartDetailStyles(theme);
 
@@ -284,6 +286,7 @@ export default function CartDetailScreen() {
           totalUsd={totalUsd}
           budgetBs={budgetBs}
           budgetUsd={budgetUsd}
+          hasBudget={hasBudget}
         />
       </View>
 

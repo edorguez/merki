@@ -19,6 +19,26 @@ func init() {
 		}
 		return name
 	})
+
+	// A cart created "con presupuesto" (hasBudget true, or omitted) must
+	// include both budget amounts. When hasBudget is absent we default to true
+	// to preserve the legacy behavior where every cart had a budget.
+	validate.RegisterStructValidation(validateCartBudget, CreateCartRequest{})
+}
+
+// validateCartBudget enforces that budget amounts are required when a cart is
+// created with a budget.
+func validateCartBudget(sl validator.StructLevel) {
+	req := sl.Current().Interface().(CreateCartRequest)
+	hasBudget := ResolveHasBudget(req.HasBudget)
+	if hasBudget {
+		if req.BudgetBs == nil {
+			sl.ReportError(req.BudgetBs, "budgetBs", "BudgetBs", "required_if", "hasBudget true")
+		}
+		if req.BudgetUsd == nil {
+			sl.ReportError(req.BudgetUsd, "budgetUsd", "BudgetUsd", "required_if", "hasBudget true")
+		}
+	}
 }
 
 func ValidateRequest(req any) map[string]string {
@@ -59,6 +79,8 @@ func translateTag(fe validator.FieldError) string {
 		return "el campo " + field + " debe ser uno de los siguientes valores: " + param
 	case "uuid":
 		return "el campo " + field + " no es un UUID válido"
+	case "required_if":
+		return "el campo " + field + " es obligatorio cuando el carrito tiene presupuesto"
 	case "gte":
 		return "el campo " + field + " debe ser mayor o igual a " + param
 	case "lte":

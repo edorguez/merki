@@ -29,8 +29,7 @@ func NewCartHandler(cartService services.CartService) *CartHandler {
 
 func (h *CartHandler) CreateCart(c *gin.Context) {
 	var req dto.CreateCartRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 
@@ -64,7 +63,9 @@ func (h *CartHandler) CreateCart(c *gin.Context) {
 		customSupermarketName = &req.NewSupermarket.Name
 	}
 
-	cart := models.NewCart(userUUID, supermarketID, true, req.BudgetBs, req.BudgetUsd)
+	hasBudget := dto.ResolveHasBudget(req.HasBudget)
+
+	cart := models.NewCart(userUUID, supermarketID, true, hasBudget, req.BudgetBs, req.BudgetUsd)
 
 	result, err := h.cartService.CreateCart(c.Request.Context(), cart, customSupermarketName)
 	if err != nil {
@@ -77,6 +78,7 @@ func (h *CartHandler) CreateCart(c *gin.Context) {
 		SupermarketID:     result.SupermarketID.String(),
 		UserID:            result.UserID.String(),
 		IsActive:          result.IsActive,
+		HasBudget:         result.HasBudget,
 		BudgetBs:          result.BudgetBs,
 		BudgetUsd:         result.BudgetUsd,
 		TotalEstimatedBs:  result.TotalEstimatedBs,
@@ -87,8 +89,7 @@ func (h *CartHandler) CreateCart(c *gin.Context) {
 
 func (h *CartHandler) AddProduct(c *gin.Context) {
 	var req dto.AddProductRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 
@@ -153,8 +154,7 @@ func (h *CartHandler) UpdateCartProduct(c *gin.Context) {
 	}
 
 	var req dto.UpdateCartProductRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 
@@ -210,8 +210,7 @@ func (h *CartHandler) UpdateCartProduct(c *gin.Context) {
 
 func (h *CartHandler) UpdateProductQuantity(c *gin.Context) {
 	var req dto.UpdateProductQuantityRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 
@@ -327,6 +326,7 @@ func (h *CartHandler) GetCarts(c *gin.Context) {
 			SupermarketName:   supermarketName,
 			UserID:            cart.UserID.String(),
 			IsActive:          cart.IsActive,
+			HasBudget:         cart.HasBudget,
 			BudgetBs:          cart.BudgetBs,
 			BudgetUsd:         cart.BudgetUsd,
 			TotalEstimatedBs:  cart.TotalEstimatedBs,
@@ -392,6 +392,7 @@ func (h *CartHandler) GetCartDetail(c *gin.Context) {
 		SupermarketName:   supermarketName,
 		UserID:            cart.UserID.String(),
 		IsActive:          cart.IsActive,
+		HasBudget:         cart.HasBudget,
 		BudgetBs:          cart.BudgetBs,
 		BudgetUsd:         cart.BudgetUsd,
 		TotalEstimatedBs:  cart.TotalEstimatedBs,
@@ -434,6 +435,7 @@ func (h *CartHandler) CheckoutCart(c *gin.Context) {
 		SupermarketID:     cart.SupermarketID.String(),
 		UserID:            cart.UserID.String(),
 		IsActive:          cart.IsActive,
+		HasBudget:         cart.HasBudget,
 		BudgetBs:          cart.BudgetBs,
 		BudgetUsd:         cart.BudgetUsd,
 		TotalEstimatedBs:  cart.TotalEstimatedBs,

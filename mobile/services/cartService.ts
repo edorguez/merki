@@ -9,14 +9,21 @@ import type {
   ApiCartProductResponse,
   ApiResponse,
 } from '../types';
-import { toCents, fromCents, transformPrices } from '../utils/priceUtils';
+import {
+  toCents,
+  fromCents,
+  toCentsNullable,
+  fromCentsNullable,
+  transformPrices,
+} from '../utils/priceUtils';
 import { SYNC_ACTIONS, SYNC_TABLES } from '../types/sync';
 
 export interface CreateCartParams {
   supermarketId?: string;
   newSupermarket?: { name: string };
-  budgetBs: number;
-  budgetUsd: number;
+  hasBudget: boolean;
+  budgetBs: number | null;
+  budgetUsd: number | null;
 }
 
 export interface CreateCartResponse {
@@ -24,6 +31,7 @@ export interface CreateCartResponse {
   supermarketId: string;
   userId: string;
   isActive: boolean;
+  hasBudget: boolean;
   budgetBs: number;
   budgetUsd: number;
   totalEstimatedBs: number | null;
@@ -81,8 +89,8 @@ export interface CartProductResponse {
 function transformCartDetail(response: ApiCartDetailResponse): ApiCartDetailResponse {
   return {
     ...response,
-    budgetBs: fromCents(response.budgetBs),
-    budgetUsd: fromCents(response.budgetUsd),
+    budgetBs: fromCentsNullable(response.budgetBs),
+    budgetUsd: fromCentsNullable(response.budgetUsd),
     totalEstimatedBs:
       response.totalEstimatedBs !== null ? fromCents(response.totalEstimatedBs) : null,
     totalEstimatedUsd:
@@ -106,8 +114,9 @@ export async function getCartDetail(
         supermarketName: response.data.supermarketName,
         userId,
         isActive: response.data.isActive,
-        budgetBs: fromCents(response.data.budgetBs),
-        budgetUsd: fromCents(response.data.budgetUsd),
+        hasBudget: response.data.hasBudget,
+        budgetBs: fromCents(response.data.budgetBs ?? 0),
+        budgetUsd: fromCents(response.data.budgetUsd ?? 0),
       });
 
       for (const product of response.data.products) {
@@ -134,8 +143,9 @@ export async function getCartDetail(
         supermarketName: localCart.supermarketName,
         userId: localCart.userId || '',
         isActive: localCart.isActive,
-        budgetBs: localCart.budgetBs,
-        budgetUsd: localCart.budgetUsd,
+        hasBudget: localCart.hasBudget,
+        budgetBs: localCart.hasBudget ? localCart.budgetBs : null,
+        budgetUsd: localCart.hasBudget ? localCart.budgetUsd : null,
         totalEstimatedBs: localCart.totalEstimatedBs,
         totalEstimatedUsd: localCart.totalEstimatedUsd,
         createdAt: localCart.createdAt,
@@ -187,8 +197,9 @@ export async function createCart(
     supermarketId: params.supermarketId || generateLocalId(),
     supermarketName: params.newSupermarket?.name || "Plaza's",
     userId,
-    budgetBs: params.budgetBs,
-    budgetUsd: params.budgetUsd,
+    hasBudget: params.hasBudget,
+    budgetBs: params.budgetBs ?? 0,
+    budgetUsd: params.budgetUsd ?? 0,
   });
 
   const now = new Date().toISOString();
@@ -202,8 +213,9 @@ export async function createCart(
       id: localCart.id,
       supermarketId: params.supermarketId,
       newSupermarket: params.newSupermarket,
-      budgetBs: toCents(params.budgetBs),
-      budgetUsd: toCents(params.budgetUsd),
+      hasBudget: params.hasBudget,
+      budgetBs: toCentsNullable(params.budgetBs),
+      budgetUsd: toCentsNullable(params.budgetUsd),
       budgetBsRaw: params.budgetBs,
       budgetUsdRaw: params.budgetUsd,
       userId,
@@ -213,6 +225,7 @@ export async function createCart(
   console.log('[cartService] createCart', {
     cartId: localCart.id,
     serverId: serverVersion?.id,
+    hasBudget: params.hasBudget,
     upsertMs: t1 - t0,
     syncMs: Date.now() - t1,
     totalMs: Date.now() - t0,
@@ -225,8 +238,9 @@ export async function createCart(
     supermarketId: params.supermarketId || localCart.supermarketId,
     userId: userId || '',
     isActive: true,
-    budgetBs: params.budgetBs,
-    budgetUsd: params.budgetUsd,
+    hasBudget: params.hasBudget,
+    budgetBs: params.budgetBs ?? 0,
+    budgetUsd: params.budgetUsd ?? 0,
     totalEstimatedBs: null,
     totalEstimatedUsd: null,
     createdAt: now,
@@ -388,8 +402,8 @@ export async function updateCartProductQuantity(
 function transformCartResponse(response: ApiCartResponse): ApiCartResponse {
   return {
     ...response,
-    budgetBs: fromCents(response.budgetBs),
-    budgetUsd: fromCents(response.budgetUsd),
+    budgetBs: fromCentsNullable(response.budgetBs),
+    budgetUsd: fromCentsNullable(response.budgetUsd),
     totalEstimatedBs:
       response.totalEstimatedBs !== null ? fromCents(response.totalEstimatedBs) : null,
     totalEstimatedUsd:
@@ -424,6 +438,7 @@ export async function checkoutCart(cartId: string, userId?: string): Promise<Api
       supermarketName: '',
       userId: userId || '',
       isActive: false,
+      hasBudget: false,
       budgetBs: 0,
       budgetUsd: 0,
       totalEstimatedBs: null,

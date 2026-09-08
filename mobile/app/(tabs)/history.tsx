@@ -23,12 +23,17 @@ import { AdNative } from '../../components/ads/AdNative';
 const AD_AFTER_PRODUCTS = 3;
 
 function calcBudgetUsage(cart: ApiCartResponse): { usage: number; exceeded: boolean } {
-  if (cart.budgetBs > 0 && cart.totalEstimatedBs !== null) {
-    const raw = Math.round((cart.totalEstimatedBs / cart.budgetBs) * 100);
+  if (!cart.hasBudget) {
+    return { usage: 0, exceeded: false };
+  }
+  const budgetBs = cart.budgetBs ?? 0;
+  const budgetUsd = cart.budgetUsd ?? 0;
+  if (budgetBs > 0 && cart.totalEstimatedBs !== null) {
+    const raw = Math.round((cart.totalEstimatedBs / budgetBs) * 100);
     return { usage: Math.min(raw, 100), exceeded: raw > 100 };
   }
-  if (cart.budgetUsd > 0 && cart.totalEstimatedUsd !== null) {
-    const raw = Math.round((cart.totalEstimatedUsd / cart.budgetUsd) * 100);
+  if (budgetUsd > 0 && cart.totalEstimatedUsd !== null) {
+    const raw = Math.round((cart.totalEstimatedUsd / budgetUsd) * 100);
     return { usage: Math.min(raw, 100), exceeded: raw > 100 };
   }
   return { usage: 0, exceeded: false };
@@ -84,11 +89,13 @@ export default function HistoryTab() {
   const renderCart = (cart: ApiCartResponse, index: number) => {
     const { usage, exceeded } = calcBudgetUsage(cart);
     const colorKey = getCartColorKey(cart.id) as keyof typeof theme.colors;
-    const totalBs = cart.budgetBs.toLocaleString('es-VE', {
+    const budgetBs = cart.budgetBs ?? 0;
+    const budgetUsd = cart.budgetUsd ?? 0;
+    const totalBs = budgetBs.toLocaleString('es-VE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    const totalUsd = `$ ${cart.budgetUsd.toLocaleString('es-VE', {
+    const totalUsd = `$ ${budgetUsd.toLocaleString('es-VE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -103,6 +110,7 @@ export default function HistoryTab() {
           status={getStatus(cart.isActive)}
           totalBs={totalBs}
           totalUsd={totalUsd}
+          hasBudget={cart.hasBudget}
           budgetUsage={usage}
           exceeded={exceeded}
           onPress={() => router.push({ pathname: '/(cart)/[id]', params: { id: cart.id } })}

@@ -3,8 +3,9 @@ package dto
 type CreateCartRequest struct {
 	SupermarketID  *string                   `json:"supermarketId" validate:"omitempty,uuid"`
 	NewSupermarket *CreateSupermarketRequest `json:"newSupermarket" validate:"omitempty"`
-	BudgetBs       int64                     `json:"budgetBs" validate:"min=0"`
-	BudgetUsd      int64                     `json:"budgetUsd" validate:"min=0"`
+	HasBudget      *bool                     `json:"hasBudget"`
+	BudgetBs       *int64                    `json:"budgetBs" validate:"omitempty,gte=0"`
+	BudgetUsd      *int64                    `json:"budgetUsd" validate:"omitempty,gte=0"`
 }
 
 type AddProductRequest struct {
@@ -45,8 +46,9 @@ type CartResponse struct {
 	SupermarketName   string `json:"supermarketName"`
 	UserID            string `json:"userId"`
 	IsActive          bool   `json:"isActive"`
-	BudgetBs          int64  `json:"budgetBs"`
-	BudgetUsd         int64  `json:"budgetUsd"`
+	HasBudget         bool   `json:"hasBudget"`
+	BudgetBs          *int64 `json:"budgetBs"`
+	BudgetUsd         *int64 `json:"budgetUsd"`
 	TotalEstimatedBs  *int64 `json:"totalEstimatedBs"`
 	TotalEstimatedUsd *int64 `json:"totalEstimatedUsd"`
 	CreatedAt         string `json:"createdAt"`
@@ -87,11 +89,26 @@ type CartDetailResponse struct {
 	SupermarketName   string                      `json:"supermarketName"`
 	UserID            string                      `json:"userId"`
 	IsActive          bool                        `json:"isActive"`
-	BudgetBs          int64                       `json:"budgetBs"`
-	BudgetUsd         int64                       `json:"budgetUsd"`
+	HasBudget         bool                        `json:"hasBudget"`
+	BudgetBs          *int64                      `json:"budgetBs"`
+	BudgetUsd         *int64                      `json:"budgetUsd"`
 	TotalEstimatedBs  *int64                      `json:"totalEstimatedBs"`
 	TotalEstimatedUsd *int64                      `json:"totalEstimatedUsd"`
 	CreatedAt         string                      `json:"createdAt"`
 	UpdatedAt         string                      `json:"updatedAt"`
 	Products          []CartProductDetailResponse `json:"products"`
+}
+
+func ResolveHasBudget(hasBudget *bool) bool {
+	if hasBudget == nil {
+		return true
+	}
+	return *hasBudget
+}
+
+// MissingBudgetAmounts reports whether a cart flagged as having a budget is
+// missing either of its budget amounts. It is the single source of truth for
+// the rule used both by the request validation and the sync service.
+func MissingBudgetAmounts(hasBudget bool, budgetBs, budgetUsd *int64) bool {
+	return hasBudget && (budgetBs == nil || budgetUsd == nil)
 }

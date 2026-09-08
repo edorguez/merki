@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Pressable, Animated, ActivityIndicator, type TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  Animated,
+  ActivityIndicator,
+  LayoutAnimation,
+  type TextStyle,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BudgetFields } from './BudgetFields';
 import { SupermarketSelector } from './SupermarketSelector';
@@ -37,9 +46,52 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
   const [renderCustomMarket, setRenderCustomMarket] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [withBudget, setWithBudget] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-20)).current;
+  const toggleAnim = useRef(new Animated.Value(1)).current;
+  const trackAnim = useRef(new Animated.Value(1)).current;
+
+  const resetOnFocusRef = useRef(false);
+
+  const resetForm = useCallback(() => {
+    setWithBudget(true);
+    setBudgetBs(null);
+    setBudgetUsd(null);
+    setCustomMarketName('');
+    setShowCustomMarket(false);
+    setFieldErrors({});
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (resetOnFocusRef.current) {
+        resetOnFocusRef.current = false;
+        resetForm();
+      }
+    }, [resetForm])
+  );
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(toggleAnim, {
+        toValue: withBudget ? 1 : 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(trackAnim, {
+        toValue: withBudget ? 1 : 0,
+        duration: 180,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [withBudget, toggleAnim, trackAnim]);
+
+  const handleToggleBudget = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setWithBudget(prev => !prev);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -171,21 +223,24 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
       finalName = selectedSupermarket.name;
     }
 
+    const hasBudget = withBudget;
     const bsAmount = budgetBs ?? 0;
     const usdAmount = budgetUsd ?? 0;
 
-    if (bsEditable) {
-      if (bsAmount <= 0) {
-        errors.budgetBs = 'Ingresa un presupuesto en Bolívares';
+    if (hasBudget) {
+      if (bsEditable) {
+        if (bsAmount <= 0) {
+          errors.budgetBs = 'Ingresa un presupuesto en Bolívares';
+        }
+      } else {
+        if (usdAmount <= 0) {
+          errors.budgetUsd = 'Ingresa un presupuesto en USD';
+        }
       }
-    } else {
-      if (usdAmount <= 0) {
-        errors.budgetUsd = 'Ingresa un presupuesto en USD';
-      }
-    }
 
-    if (exchangeRate <= 0) {
-      errors.budgetBs = 'Tasa BCV no disponible, intenta de nuevo';
+      if (exchangeRate <= 0) {
+        errors.budgetBs = 'Tasa BCV no disponible, intenta de nuevo';
+      }
     }
 
     setFieldErrors(errors);
@@ -194,10 +249,12 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
     let finalBs = bsAmount;
     let finalUsd = usdAmount;
 
-    if (bsEditable && finalBs > 0 && finalUsd <= 0) {
-      finalUsd = finalBs / exchangeRate;
-    } else if (!bsEditable && finalUsd > 0 && finalBs <= 0) {
-      finalBs = finalUsd * exchangeRate;
+    if (hasBudget) {
+      if (bsEditable && finalBs > 0 && finalUsd <= 0) {
+        finalUsd = finalBs / exchangeRate;
+      } else if (!bsEditable && finalUsd > 0 && finalBs <= 0) {
+        finalBs = finalUsd * exchangeRate;
+      }
     }
 
     setIsSubmitting(true);
@@ -206,8 +263,9 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
         {
           supermarketId: finalSupermarketId,
           newSupermarket: finalSupermarketId ? undefined : { name: finalName || '' },
-          budgetBs: finalBs,
-          budgetUsd: finalUsd,
+          hasBudget,
+          budgetBs: hasBudget ? finalBs : null,
+          budgetUsd: hasBudget ? finalUsd : null,
         },
         userId
       );
@@ -222,15 +280,12 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
         products: [],
         totalBs: 0,
         totalUsd: 0,
+        hasBudget: result.hasBudget,
         budgetBs: result.budgetBs,
         budgetUsd: result.budgetUsd,
       });
       setActiveCart(result.id);
-      setBudgetBs(null);
-      setBudgetUsd(null);
-      setCustomMarketName('');
-      setShowCustomMarket(false);
-      setFieldErrors({});
+      resetOnFocusRef.current = true;
       onCartCreated(result.id);
 
       const updatedMarkets = await getAllSupermarkets(userId);
@@ -254,6 +309,15 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
     );
   }
 
+  const trackColor = trackAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [theme.colors.surfaceContainer, theme.colors.primary],
+  });
+  const thumbTranslate = toggleAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [2, 24],
+  });
+
   return (
     <View style={styles.section}>
       <View style={styles.card}>
@@ -268,20 +332,49 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
           onCustomMarketChange={handleCustomMarketChange}
         />
 
-        <BudgetFields
-          topCurrency={topCurrency}
-          budgetBs={budgetBs}
-          budgetUsd={budgetUsd}
-          fieldErrors={fieldErrors}
-          onBsChange={handleBsBudgetChange}
-          onUsdChange={handleUsdBudgetChange}
-          onToggleCurrency={handleToggleCurrency}
-        />
+        <View style={styles.budgetToggleRow}>
+          <Text style={styles.budgetToggleLabel}>Crear con presupuesto</Text>
+          <Pressable
+            onPress={handleToggleBudget}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: withBudget }}
+            accessibilityLabel="Crear con presupuesto"
+            hitSlop={8}
+          >
+            <Animated.View
+              style={[
+                styles.toggleTrack,
+                {
+                  backgroundColor: trackColor,
+                  borderColor: trackColor,
+                },
+              ]}
+            >
+              <Animated.View
+                style={[styles.toggleThumb, { transform: [{ translateX: thumbTranslate }] }]}
+              />
+            </Animated.View>
+          </Pressable>
+        </View>
 
-        {fieldErrors.budgetBs || fieldErrors.budgetUsd ? (
-          <Text style={styles.errorText as TextStyle}>
-            {fieldErrors.budgetBs || fieldErrors.budgetUsd}
-          </Text>
+        {withBudget ? (
+          <>
+            <BudgetFields
+              topCurrency={topCurrency}
+              budgetBs={budgetBs}
+              budgetUsd={budgetUsd}
+              fieldErrors={fieldErrors}
+              onBsChange={handleBsBudgetChange}
+              onUsdChange={handleUsdBudgetChange}
+              onToggleCurrency={handleToggleCurrency}
+            />
+
+            {fieldErrors.budgetBs || fieldErrors.budgetUsd ? (
+              <Text style={styles.errorText as TextStyle}>
+                {fieldErrors.budgetBs || fieldErrors.budgetUsd}
+              </Text>
+            ) : null}
+          </>
         ) : null}
 
         {fieldErrors.supermarket ? (

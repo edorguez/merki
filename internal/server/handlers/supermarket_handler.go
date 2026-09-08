@@ -28,8 +28,7 @@ func NewSupermarketHandler(supermarketService services.SupermarketService) *Supe
 
 func (h *SupermarketHandler) CreateSupermarket(c *gin.Context) {
 	var req dto.CreateSupermarketRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 

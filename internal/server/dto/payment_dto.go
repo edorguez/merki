@@ -8,7 +8,7 @@ type CreatePaymentRequest struct {
 	AmountUsd       int64  `json:"amountUsd" validate:"required,min=1"`
 	PriceBcv        int64  `json:"priceBcv" validate:"required,min=1"`
 	Identification  string `json:"identification" validate:"required,max=20"`
-	IsDiscount      bool   `json:"isDiscount" validate:"required"`
+	IsDiscount      bool   `json:"isDiscount"`
 	PaidAt          string `json:"paidAt" validate:"required"`
 }
 

@@ -27,8 +27,7 @@ func NewPaymentHandler(paymentService services.PaymentService) *PaymentHandler {
 
 func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	var req dto.CreatePaymentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 	userID, ok := middleware.GetUserIDFromContext(c)
@@ -165,8 +164,7 @@ func (h *PaymentHandler) UpdatePayment(c *gin.Context) {
 		return
 	}
 	var req dto.UpdatePaymentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, dto.ValidateRequest(req))
+	if !bindAndValidate(c, &req) {
 		return
 	}
 	result, err := h.paymentService.UpdatePayment(c.Request.Context(), paymentID, req)

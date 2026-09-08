@@ -21,6 +21,7 @@ export interface Cart {
   products: CartProduct[];
   totalBs: number;
   totalUsd: number;
+  hasBudget: boolean;
   budgetBs: number;
   budgetUsd: number;
   createdAt: string;
@@ -191,7 +192,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: '@merki_cart_store',
-      version: 1,
+      version: 2,
       storage,
       partialize: state => ({
         carts: state.carts,
@@ -207,6 +208,9 @@ export const useCartStore = create<CartState>()(
             }
             if (cart.completedAt instanceof Date) {
               cart.completedAt = (cart.completedAt as Date).toISOString();
+            }
+            if (typeof cart.hasBudget !== 'boolean') {
+              cart.hasBudget = true;
             }
           }
         }

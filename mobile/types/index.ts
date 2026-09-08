@@ -78,8 +78,9 @@ export interface ApiCartResponse {
   supermarketName: string;
   userId: string;
   isActive: boolean;
-  budgetBs: number;
-  budgetUsd: number;
+  hasBudget: boolean;
+  budgetBs: number | null;
+  budgetUsd: number | null;
   totalEstimatedBs: number | null;
   totalEstimatedUsd: number | null;
   createdAt: string;
@@ -106,8 +107,9 @@ export interface ApiCartDetailResponse {
   supermarketName: string;
   userId: string;
   isActive: boolean;
-  budgetBs: number;
-  budgetUsd: number;
+  hasBudget: boolean;
+  budgetBs: number | null;
+  budgetUsd: number | null;
   totalEstimatedBs: number | null;
   totalEstimatedUsd: number | null;
   createdAt: string;

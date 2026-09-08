@@ -73,12 +73,17 @@ export const LatestCartsSection = forwardRef<LatestCartsSectionRef, LatestCartsS
     );
 
     function calcBudgetUsage(cart: ApiCartResponse): { usage: number; exceeded: boolean } {
-      if (cart.budgetBs > 0 && cart.totalEstimatedBs !== null) {
-        const raw = Math.round((cart.totalEstimatedBs / cart.budgetBs) * 100);
+      if (!cart.hasBudget) {
+        return { usage: 0, exceeded: false };
+      }
+      const budgetBs = cart.budgetBs ?? 0;
+      const budgetUsd = cart.budgetUsd ?? 0;
+      if (budgetBs > 0 && cart.totalEstimatedBs !== null) {
+        const raw = Math.round((cart.totalEstimatedBs / budgetBs) * 100);
         return { usage: Math.min(raw, 100), exceeded: raw > 100 };
       }
-      if (cart.budgetUsd > 0 && cart.totalEstimatedUsd !== null) {
-        const raw = Math.round((cart.totalEstimatedUsd / cart.budgetUsd) * 100);
+      if (budgetUsd > 0 && cart.totalEstimatedUsd !== null) {
+        const raw = Math.round((cart.totalEstimatedUsd / budgetUsd) * 100);
         return { usage: Math.min(raw, 100), exceeded: raw > 100 };
       }
       return { usage: 0, exceeded: false };
@@ -93,6 +98,8 @@ export const LatestCartsSection = forwardRef<LatestCartsSectionRef, LatestCartsS
             {recentCarts.map(cart => {
               const { usage, exceeded } = calcBudgetUsage(cart);
               const colorKey = getCartColorKey(cart.id) as keyof typeof theme.colors;
+              const budgetBs = cart.budgetBs ?? 0;
+              const budgetUsd = cart.budgetUsd ?? 0;
 
               return (
                 <HistoryCard
@@ -103,14 +110,15 @@ export const LatestCartsSection = forwardRef<LatestCartsSectionRef, LatestCartsS
                   iconColor={theme.colors[colorKey]}
                   status={cart.isActive ? 'Activo' : 'Completado'}
                   statusIconOnly
-                  totalBs={cart.budgetBs.toLocaleString('es-VE', {
+                  totalBs={budgetBs.toLocaleString('es-VE', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
-                  totalUsd={`$ ${cart.budgetUsd.toLocaleString('es-VE', {
+                  totalUsd={`$ ${budgetUsd.toLocaleString('es-VE', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}`}
+                  hasBudget={cart.hasBudget}
                   budgetUsage={usage}
                   exceeded={exceeded}
                   hideAmounts

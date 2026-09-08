@@ -13,8 +13,9 @@ type Cart struct {
 	UserID            uuid.UUID    `gorm:"type:uuid;not null"`
 	LocalID           string       `gorm:"column:local_id;type:text;index"`
 	IsActive          bool         `gorm:"not null;default:true"`
-	BudgetBs          int64        `gorm:"type:bigint;not null;default:0"`
-	BudgetUsd         int64        `gorm:"type:bigint;not null;default:0"`
+	HasBudget         bool         `gorm:"column:has_budget;not null"`
+	BudgetBs          *int64       `gorm:"type:bigint"` // NULL when the cart has no budget
+	BudgetUsd         *int64       `gorm:"type:bigint"` // NULL when the cart has no budget
 	TotalEstimatedBs  *int64       `gorm:"type:bigint"`
 	TotalEstimatedUsd *int64       `gorm:"type:bigint"`
 	Supermarket       *Supermarket `gorm:"foreignKey:SupermarketID"`
@@ -24,14 +25,16 @@ type Cart struct {
 func NewCart(
 	userID,
 	supermarketID uuid.UUID,
-	isActive bool,
-	budgetBs int64,
-	budgetUsd int64,
+	isActive,
+	hasBudget bool,
+	budgetBs,
+	budgetUsd *int64,
 ) *Cart {
 	cart := &Cart{
 		UserID:            userID,
 		SupermarketID:     supermarketID,
 		IsActive:          isActive,
+		HasBudget:         hasBudget,
 		BudgetBs:          budgetBs,
 		BudgetUsd:         budgetUsd,
 		TotalEstimatedBs:  nil,

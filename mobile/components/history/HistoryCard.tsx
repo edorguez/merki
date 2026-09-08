@@ -18,6 +18,7 @@ interface HistoryCardProps {
   totalUsd: string;
   budgetUsage: number;
   exceeded: boolean;
+  hasBudget?: boolean;
   hideAmounts?: boolean;
   statusIconOnly?: boolean;
   onPress?: () => void;
@@ -82,6 +83,11 @@ const stylesheet = StyleSheet.create(theme => {
       fontSize: theme.typography.fontSize.xs,
       fontWeight: theme.typography.fontWeight.semibold,
     },
+    noBudgetLabel: {
+      fontSize: theme.typography.fontSize.xs,
+      fontWeight: theme.typography.fontWeight.semibold,
+      color: theme.colors.onSurfaceVariant,
+    },
   };
 });
 
@@ -95,6 +101,7 @@ export function HistoryCard({
   totalUsd,
   budgetUsage,
   exceeded,
+  hasBudget = true,
   hideAmounts = false,
   statusIconOnly,
   onPress,
@@ -102,6 +109,8 @@ export function HistoryCard({
 }: HistoryCardProps) {
   const theme = useAppTheme();
   const styles = stylesheet(theme);
+
+  const showAmounts = !hideAmounts && hasBudget;
 
   const content = (
     <>
@@ -124,38 +133,42 @@ export function HistoryCard({
         <StatusBadge status={status} iconOnly={statusIconOnly} />
       </View>
 
-      {!hideAmounts && (
+      {showAmounts && (
         <View style={styles.amountGrid as ViewStyle}>
           <AmountCard label="Total Bs" value={totalBs} />
           <AmountCard label="Total USD" value={totalUsd} />
         </View>
       )}
 
-      <View style={styles.progressSection as ViewStyle}>
-        <View style={styles.progressHeader as ViewStyle}>
-          <Text
-            style={[
-              styles.progressLabel as TextStyle,
-              { color: exceeded ? theme.colors.error : theme.colors.onSurfaceVariant },
-            ]}
-          >
-            {exceeded ? 'Alerta de Gasto' : 'Uso del Presupuesto'}
-          </Text>
-          <Text
-            style={[
-              styles.progressValue as TextStyle,
-              { color: exceeded ? theme.colors.error : theme.colors.onSurface },
-            ]}
-          >
-            {exceeded ? '+100' : budgetUsage}%
-          </Text>
+      {hasBudget ? (
+        <View style={styles.progressSection as ViewStyle}>
+          <View style={styles.progressHeader as ViewStyle}>
+            <Text
+              style={[
+                styles.progressLabel as TextStyle,
+                { color: exceeded ? theme.colors.error : theme.colors.onSurfaceVariant },
+              ]}
+            >
+              {exceeded ? 'Alerta de Gasto' : 'Uso del Presupuesto'}
+            </Text>
+            <Text
+              style={[
+                styles.progressValue as TextStyle,
+                { color: exceeded ? theme.colors.error : theme.colors.onSurface },
+              ]}
+            >
+              {exceeded ? '+100' : budgetUsage}%
+            </Text>
+          </View>
+          <ProgressBar
+            progress={Math.min(budgetUsage, 100)}
+            color={exceeded ? theme.colors.error : theme.colors.midnight}
+            backgroundColor={theme.colors.stoneSurface}
+          />
         </View>
-        <ProgressBar
-          progress={Math.min(budgetUsage, 100)}
-          color={exceeded ? theme.colors.error : theme.colors.midnight}
-          backgroundColor={theme.colors.stoneSurface}
-        />
-      </View>
+      ) : (
+        <Text style={styles.noBudgetLabel as TextStyle}>Sin presupuesto</Text>
+      )}
     </>
   );
 

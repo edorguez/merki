@@ -10,6 +10,7 @@ import { useBCV } from '../../store/bcvStore';
 interface BudgetSummaryProps {
   totalBs: number;
   totalUsd: number;
+  hasBudget: boolean;
   budgetBs: number;
   budgetUsd: number;
 }
@@ -98,23 +99,23 @@ const stylesheet = StyleSheet.create(theme => {
   };
 });
 
-export function BudgetSummary({ totalBs, totalUsd, budgetBs, budgetUsd }: BudgetSummaryProps) {
+export function BudgetSummary({
+  totalBs,
+  totalUsd,
+  hasBudget,
+  budgetBs,
+  budgetUsd,
+}: BudgetSummaryProps) {
   const theme = useAppTheme();
   const styles = stylesheet(theme);
   const { rate: bcvRate } = useBCV();
 
-  const isOverBudget = totalBs > budgetBs;
-  const overBudgetAmount = Math.max(0, totalBs - budgetBs);
-  const progressPercentage = Math.min(100, (totalBs / budgetBs) * 100);
-  console.log('[BudgetSummary] render', {
-    totalBs,
-    totalUsd,
-    budgetBs,
-    budgetUsd,
-    progressPercentage,
-  });
+  const budgetAvailable = hasBudget && budgetBs > 0;
+  const isOverBudget = budgetAvailable ? totalBs > budgetBs : false;
+  const overBudgetAmount = budgetAvailable ? Math.max(0, totalBs - budgetBs) : 0;
+  const progressPercentage = budgetAvailable ? Math.min(100, (totalBs / budgetBs) * 100) : 0;
   const exchangeRate =
-    budgetBs > 0 && budgetUsd > 0 ? budgetUsd / budgetBs : (bcvRate?.usdRate ?? 55);
+    budgetAvailable && budgetUsd > 0 ? budgetUsd / budgetBs : (bcvRate?.usdRate ?? 55);
   const overBudgetUsd = overBudgetAmount * exchangeRate;
   const limitLabelText = `LÍMITE: Bs. ${budgetBs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}`;
   const isLongBudget = limitLabelText.length > 22;
@@ -124,19 +125,24 @@ export function BudgetSummary({ totalBs, totalUsd, budgetBs, budgetUsd }: Budget
 
   return (
     <View style={styles.container as ViewStyle}>
-      <View
-        style={[styles.limitRow as ViewStyle, isLongBudget && (styles.limitRowColumn as ViewStyle)]}
-      >
-        <Text style={styles.limitLabel as TextStyle}>{limitLabelText}</Text>
-        <Text style={styles.limitUsd as TextStyle}>
-          (${' '}
-          {budgetUsd.toLocaleString('es-VE', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-          )
-        </Text>
-      </View>
+      {budgetAvailable ? (
+        <View
+          style={[
+            styles.limitRow as ViewStyle,
+            isLongBudget && (styles.limitRowColumn as ViewStyle),
+          ]}
+        >
+          <Text style={styles.limitLabel as TextStyle}>{limitLabelText}</Text>
+          <Text style={styles.limitUsd as TextStyle}>
+            (${' '}
+            {budgetUsd.toLocaleString('es-VE', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+            )
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.totalRow as ViewStyle}>
         <View style={styles.totalLeft as ViewStyle}>
@@ -148,16 +154,18 @@ export function BudgetSummary({ totalBs, totalUsd, budgetBs, budgetUsd }: Budget
         </View>
       </View>
 
-      <View style={styles.progressBarContainer as ViewStyle}>
-        <ProgressBar
-          progress={progressPercentage}
-          color={isOverBudget ? theme.colors.error : theme.colors.midnight}
-          backgroundColor={theme.colors.surfaceContainer}
-          height={8}
-        />
-      </View>
+      {budgetAvailable ? (
+        <View style={styles.progressBarContainer as ViewStyle}>
+          <ProgressBar
+            progress={progressPercentage}
+            color={isOverBudget ? theme.colors.error : theme.colors.midnight}
+            backgroundColor={theme.colors.surfaceContainer}
+            height={8}
+          />
+        </View>
+      ) : null}
 
-      {isOverBudget && (
+      {isOverBudget ? (
         <View style={styles.warningContainer as ViewStyle}>
           <MaterialIcons name="warning" size={theme.iconSize.sm} color={theme.colors.error} />
           <Text style={styles.warningText as TextStyle}>
@@ -166,7 +174,7 @@ export function BudgetSummary({ totalBs, totalUsd, budgetBs, budgetUsd }: Budget
             {overBudgetUsd.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
           </Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }

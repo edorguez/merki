@@ -1,13 +1,13 @@
 import { apiGet } from './api';
 import { cartRepository } from '../lib/local/repositories/cartRepository';
 import type { ApiCartResponse, ApiResponse } from '../types';
-import { fromCents } from '../utils/priceUtils';
+import { fromCents, fromCentsNullable } from '../utils/priceUtils';
 
 function transformCartResponse(cart: ApiCartResponse): ApiCartResponse {
   return {
     ...cart,
-    budgetBs: fromCents(cart.budgetBs),
-    budgetUsd: fromCents(cart.budgetUsd),
+    budgetBs: fromCentsNullable(cart.budgetBs),
+    budgetUsd: fromCentsNullable(cart.budgetUsd),
     totalEstimatedBs: cart.totalEstimatedBs !== null ? fromCents(cart.totalEstimatedBs) : null,
     totalEstimatedUsd: cart.totalEstimatedUsd !== null ? fromCents(cart.totalEstimatedUsd) : null,
   };
@@ -34,8 +34,9 @@ export async function getCarts(userId?: string, limit?: number): Promise<ApiCart
           supermarketName: cart.supermarketName,
           userId,
           isActive: cart.isActive,
-          budgetBs: cart.budgetBs,
-          budgetUsd: cart.budgetUsd,
+          hasBudget: cart.hasBudget,
+          budgetBs: cart.budgetBs ?? 0,
+          budgetUsd: cart.budgetUsd ?? 0,
         });
       }
     } else {
@@ -57,8 +58,9 @@ export async function getCarts(userId?: string, limit?: number): Promise<ApiCart
       supermarketName: local.supermarketName,
       userId: local.userId || userId || '',
       isActive: local.isActive,
-      budgetBs: local.budgetBs,
-      budgetUsd: local.budgetUsd,
+      hasBudget: local.hasBudget,
+      budgetBs: local.hasBudget ? local.budgetBs : null,
+      budgetUsd: local.hasBudget ? local.budgetUsd : null,
       totalEstimatedBs: local.totalEstimatedBs,
       totalEstimatedUsd: local.totalEstimatedUsd,
       createdAt: local.createdAt,
