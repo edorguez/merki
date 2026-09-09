@@ -1,8 +1,8 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
+import { Button } from '../../components/Button';
 import { useScaleIn, useFadeSlideIn, useHeartbeat } from '../../hooks/animations';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,7 +10,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function PaymentPendingScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const buttonStyles = createButtonStyles(theme);
   const insets = useSafeAreaInsets();
 
   const iconEnter = useScaleIn({ delay: 150 });
@@ -52,20 +51,6 @@ export default function PaymentPendingScreen() {
       lineHeight: 22,
       paddingHorizontal: theme.spacing.md,
     },
-    button: {
-      ...buttonStyles.base,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.xxl,
-      width: '100%',
-      maxWidth: 300,
-      alignItems: 'center',
-    },
-    buttonText: {
-      color: theme.colors.onPrimary,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
   });
 
   return (
@@ -81,12 +66,13 @@ export default function PaymentPendingScreen() {
         membresía. Mientras tanto, puedes seguir disfrutando de la app.
       </Animated.Text>
       <Animated.View style={buttonEnter}>
-        <Pressable
-          style={({ pressed }) => [styles.button, pressed && buttonStyles.pressed]}
+        <Button
+          title="Ir al Inicio"
           onPress={() => router.replace('/(tabs)')}
-        >
-          <Text style={styles.buttonText}>Ir al Inicio</Text>
-        </Pressable>
+          size="lg"
+          fullWidth
+          style={{ maxWidth: 300, alignSelf: 'center' }}
+        />
       </Animated.View>
     </View>
   );

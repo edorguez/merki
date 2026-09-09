@@ -9,7 +9,7 @@ export function createInputStyles(theme: AppTheme) {
       borderRadius: theme.borderRadius.md,
       borderCurve: 'continuous' as const,
       paddingHorizontal: theme.spacing.sm,
-      paddingVertical: theme.spacing.sm,
+      paddingVertical: theme.spacing.xs,
       fontSize: theme.typography.fontSize.sm,
       color: theme.colors.text,
       boxShadow: theme.shadows.soft,

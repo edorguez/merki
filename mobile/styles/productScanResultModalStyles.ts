@@ -1,13 +1,11 @@
 import { StyleSheet, Dimensions } from 'react-native';
 import { AppTheme } from './theme';
-import { createButtonStyles } from './buttons';
 import { createInputStyles } from './inputs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MODAL_WIDTH = Math.min(SCREEN_WIDTH * 0.9, 400);
 
 export function createProductScanResultModalStyles(theme: AppTheme) {
-  const buttonStyles = createButtonStyles(theme);
   const inputStyles = createInputStyles(theme);
   return StyleSheet.create({
     modalContainer: {
@@ -116,35 +114,6 @@ export function createProductScanResultModalStyles(theme: AppTheme) {
       flexDirection: 'row',
       gap: theme.spacing.xxs,
       marginTop: theme.spacing.sm,
-    },
-    retryButton: {
-      // ...buttonStyles.base,
-      flex: 1,
-      paddingVertical: theme.spacing.md,
-      borderWidth: 1,
-      borderColor: theme.colors.stoneSurface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    retryButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.onSurfaceVariant,
-    },
-    addButton: {
-      ...buttonStyles.base,
-      flex: 1,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-    },
-    addButtonText: {
-      color: theme.colors.onPrimary,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
     },
   });
 }

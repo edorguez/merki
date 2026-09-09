@@ -374,13 +374,7 @@ export function ProductForm({ onSubmit, supermarket, initialData }: ProductFormP
 
       {/* Action Button */}
       <View style={styles.buttonContainer as ViewStyle}>
-        <Button
-          title={buttonTitle}
-          onPress={handleSubmit}
-          variant="primary"
-          size="large"
-          fullWidth
-        />
+        <Button title={buttonTitle} onPress={handleSubmit} variant="primary" size="lg" fullWidth />
       </View>
 
       <View style={{ height: 120 }} />

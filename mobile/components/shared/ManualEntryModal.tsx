@@ -10,7 +10,7 @@ import {
   type TextStyle,
 } from 'react-native';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
+import { Button } from '../Button';
 import { Input } from './Input';
 import { createManualEntryModalStyles } from '../../styles/manualEntryModalStyles';
 import { AmountInput } from './AmountInput';
@@ -32,7 +32,6 @@ interface ManualEntryModalProps {
 export function ManualEntryModal({ isVisible, onClose, onSubmit }: ManualEntryModalProps) {
   const theme = useAppTheme();
   const styles = useMemo(() => createManualEntryModalStyles(theme), [theme]);
-  const buttonStyles = useMemo(() => createButtonStyles(theme), [theme]);
   const { rate: exchangeRate } = useBCV();
   const EXCHANGE_RATE = exchangeRate?.usdRate ?? 55;
 
@@ -222,25 +221,23 @@ export function ManualEntryModal({ isVisible, onClose, onSubmit }: ManualEntryMo
             {error && <Text style={styles.errorText as TextStyle}>{error}</Text>}
 
             <View style={styles.actionRow as ViewStyle}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.cancelButton as ViewStyle,
-                  pressed && buttonStyles.pressed,
-                ]}
+              <Button
+                title="Cancelar"
                 onPress={onClose}
-              >
-                <Text style={styles.cancelButtonText as TextStyle}>Cancelar</Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.addButton as ViewStyle,
-                  pressed && buttonStyles.pressed,
-                ]}
+                variant="neutral"
+                size="md"
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Añadir"
                 onPress={handleSubmit}
-              >
-                <MaterialIcons name="add-circle" size={20} color={theme.colors.white} />
-                <Text style={styles.addButtonText as TextStyle}>Añadir</Text>
-              </Pressable>
+                variant="primary"
+                size="md"
+                style={{ flex: 1 }}
+                leadingIcon={
+                  <MaterialIcons name="add-circle" size={20} color={theme.colors.onPrimary} />
+                }
+              />
             </View>
           </Pressable>
         </Animated.View>

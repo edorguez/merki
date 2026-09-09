@@ -1,20 +1,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  Animated,
-  ActivityIndicator,
-  LayoutAnimation,
-  type TextStyle,
-} from 'react-native';
+import { View, Text, Pressable, Animated, LayoutAnimation, type TextStyle } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BudgetFields } from './BudgetFields';
 import { SupermarketSelector } from './SupermarketSelector';
 import { createHomeStyles } from '../../styles/homeStyles';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
+import { Button } from '../Button';
 import { Skeleton } from '../shared/Skeleton';
 import { useCartStore } from '../../store/cartStore';
 import { getAllSupermarkets } from '../../services/supermarketService';
@@ -32,7 +24,6 @@ interface CreateCartSectionProps {
 export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionProps) {
   const theme = useAppTheme();
   const styles = useMemo(() => createHomeStyles(theme), [theme]);
-  const buttonStyles = useMemo(() => createButtonStyles(theme), [theme]);
 
   const [supermarkets, setSupermarkets] = useState<SupermarketOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -381,25 +372,17 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
           <Text style={styles.errorText as TextStyle}>{fieldErrors.supermarket}</Text>
         ) : null}
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && !isSubmitting ? buttonStyles.pressed : undefined,
-            isSubmitting ? { opacity: 0.8 } : undefined,
-          ]}
+        <Button
+          title="Comenzar Lista"
           onPress={handleStartList}
+          size="md"
+          fullWidth
+          isLoading={isSubmitting}
           disabled={isSubmitting}
-        >
-          <View style={styles.primaryButtonOverlay} />
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color={theme.colors.white} />
-          ) : (
-            <>
-              <Text style={styles.primaryButtonText}>Comenzar Lista</Text>
-              <MaterialIcons name="play-circle-outline" size={24} color={theme.colors.white} />
-            </>
-          )}
-        </Pressable>
+          leadingIcon={
+            <MaterialIcons name="play-circle-outline" size={24} color={theme.colors.onPrimary} />
+          }
+        />
       </View>
     </View>
   );

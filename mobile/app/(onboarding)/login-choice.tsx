@@ -1,16 +1,7 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Dimensions,
-  ScrollView,
-  ActivityIndicator,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, ScrollView, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
+import { Button } from '../../components/Button';
 import { useFloat, useFadeSlideIn } from '../../hooks/animations';
 import { signIn } from '../../lib/auth-client';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -39,7 +30,6 @@ async function waitForSessionToken(timeoutMs = 5000): Promise<boolean> {
 export default function LoginChoiceScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const buttonStyles = createButtonStyles(theme);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -296,56 +286,6 @@ export default function LoginChoiceScreen() {
       alignSelf: 'center',
       gap: actionsGap,
     },
-    googleButton: {
-      ...buttonStyles.base,
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      backgroundColor: theme.colors.surfaceContainerLow,
-    },
-    googleButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.text,
-    },
-    emailButton: {
-      ...buttonStyles.base,
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      backgroundColor: theme.colors.primary,
-    },
-    emailButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.onPrimary,
-    },
-    registerButton: {
-      ...buttonStyles.base,
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      backgroundColor: 'transparent',
-      borderWidth: 1,
-      borderColor: theme.colors.graphite,
-    },
-    registerButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.graphite,
-    },
     divider: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -363,20 +303,6 @@ export default function LoginChoiceScreen() {
       fontWeight: theme.typography.fontWeight.medium,
       letterSpacing: 1,
       textTransform: 'uppercase',
-    },
-    guestButton: {
-      ...buttonStyles.base,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-      backgroundColor: 'transparent',
-    },
-    guestButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.emberOrange,
     },
     footer: {
       marginTop: 'auto',
@@ -480,31 +406,26 @@ export default function LoginChoiceScreen() {
 
           <Animated.View style={actionsEnter}>
             <View style={styles.actions}>
-              <Pressable
+              <Button
+                title="Iniciar con Correo"
                 onPress={() => router.push('/(onboarding)/login')}
+                size="lg"
+                fullWidth
                 disabled={isGuestLoading}
-                style={({ pressed }) => [
-                  styles.emailButton,
-                  pressed && buttonStyles.pressed,
-                  isGuestLoading && { opacity: 0.6 },
-                ]}
-              >
-                <MaterialIcons name="mail" size={20} color={theme.colors.white} />
-                <Text style={styles.emailButtonText}>Iniciar con Correo</Text>
-              </Pressable>
+                leadingIcon={<MaterialIcons name="mail" size={20} color={theme.colors.onPrimary} />}
+              />
 
-              <Pressable
+              <Button
+                title="Registrarse con correo"
                 onPress={() => router.push('/(onboarding)/register')}
+                variant="outline"
+                size="lg"
+                fullWidth
                 disabled={isGuestLoading}
-                style={({ pressed }) => [
-                  styles.registerButton,
-                  pressed && buttonStyles.pressed,
-                  isGuestLoading && { opacity: 0.6 },
-                ]}
-              >
-                <MaterialIcons name="person-add" size={20} color={theme.colors.graphite} />
-                <Text style={styles.registerButtonText}>Registrarse con correo</Text>
-              </Pressable>
+                leadingIcon={
+                  <MaterialIcons name="person-add" size={20} color={theme.colors.graphite} />
+                }
+              />
 
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
@@ -512,28 +433,18 @@ export default function LoginChoiceScreen() {
                 <View style={styles.dividerLine} />
               </View>
 
-              <Pressable
+              <Button
+                title="Entrar como Invitado"
                 onPress={handleGuestLogin}
+                variant="ghost"
+                size="lg"
+                fullWidth
+                isLoading={isGuestLoading}
                 disabled={isGuestLoading}
-                style={({ pressed }) => [
-                  styles.guestButton,
-                  pressed && buttonStyles.pressed,
-                  isGuestLoading && { opacity: 0.6 },
-                ]}
-              >
-                {isGuestLoading ? (
-                  <ActivityIndicator size="small" color={theme.colors.emberOrange} />
-                ) : (
-                  <>
-                    <Text style={styles.guestButtonText}>Entrar como Invitado</Text>
-                    <MaterialIcons
-                      name="arrow-forward"
-                      size={20}
-                      color={theme.colors.emberOrange}
-                    />
-                  </>
-                )}
-              </Pressable>
+                trailingIcon={
+                  <MaterialIcons name="arrow-forward" size={20} color={theme.colors.emberOrange} />
+                }
+              />
             </View>
           </Animated.View>
 

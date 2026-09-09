@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
 import { Input } from '../../components/shared/Input';
+import { Button } from '../../components/Button';
 import { requestPasswordReset } from '../../lib/auth-client';
 import { Toast } from '../../components/shared/Toast';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -12,7 +12,6 @@ import * as Network from 'expo-network';
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const theme = useAppTheme();
-  const buttonStyles = createButtonStyles(theme);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -87,20 +86,6 @@ export default function ForgotPasswordScreen() {
     form: {
       gap: theme.spacing.md,
     },
-    sendButton: {
-      ...buttonStyles.base,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-    },
-    sendButtonText: {
-      color: theme.colors.onPrimary,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
     success: {
       alignItems: 'center',
       gap: theme.spacing.sm,
@@ -168,24 +153,15 @@ export default function ForgotPasswordScreen() {
                 editable={!isLoading}
               />
 
-              <Pressable
+              <Button
+                title="Enviar enlace"
                 onPress={handleSend}
+                size="lg"
+                fullWidth
+                isLoading={isLoading}
                 disabled={isLoading}
-                style={({ pressed }) => [
-                  styles.sendButton,
-                  pressed && buttonStyles.pressed,
-                  isLoading && { opacity: 0.6 },
-                ]}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color={theme.colors.white} />
-                ) : (
-                  <>
-                    <MaterialIcons name="mail" size={20} color={theme.colors.white} />
-                    <Text style={styles.sendButtonText}>Enviar enlace</Text>
-                  </>
-                )}
-              </Pressable>
+                leadingIcon={<MaterialIcons name="mail" size={20} color={theme.colors.onPrimary} />}
+              />
             </View>
           )}
 

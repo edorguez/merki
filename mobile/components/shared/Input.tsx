@@ -48,7 +48,7 @@ const stylesheet = StyleSheet.create(theme => {
       padding: 0,
     },
     label: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: theme.typography.fontSize.xxs,
       fontWeight: theme.typography.fontWeight.semibold,
       textTransform: 'uppercase',
       letterSpacing: 1,

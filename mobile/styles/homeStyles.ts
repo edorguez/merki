@@ -1,10 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { AppTheme } from './theme';
-import { createButtonStyles } from './buttons';
 import { createCardStyles } from './cards';
 
 export function createHomeStyles(theme: AppTheme) {
-  const buttonStyles = createButtonStyles(theme);
   const cardStyles = createCardStyles(theme);
   return StyleSheet.create({
     container: {
@@ -14,7 +12,7 @@ export function createHomeStyles(theme: AppTheme) {
     scrollContent: {
       paddingHorizontal: theme.spacing.lg,
       paddingVertical: theme.spacing.lg,
-      gap: theme.spacing.xl,
+      gap: theme.spacing.md,
     },
     header: {
       backgroundColor: theme.colors.surfaceContainerLowest + 'cc',
@@ -34,10 +32,10 @@ export function createHomeStyles(theme: AppTheme) {
     card: {
       ...cardStyles.base,
       padding: theme.spacing.lg,
-      gap: theme.spacing.lg,
+      gap: theme.spacing.md,
     },
     supermarketLabel: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: theme.typography.fontSize.xxs,
       fontWeight: theme.typography.fontWeight.semibold,
       textTransform: 'uppercase',
       letterSpacing: 1,
@@ -64,7 +62,7 @@ export function createHomeStyles(theme: AppTheme) {
       alignItems: 'center',
     },
     budgetLabel: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: theme.typography.fontSize.xxs,
       fontWeight: theme.typography.fontWeight.semibold,
       textTransform: 'uppercase',
       letterSpacing: 1,
@@ -83,7 +81,6 @@ export function createHomeStyles(theme: AppTheme) {
       fontWeight: theme.typography.fontWeight.semibold,
       color: theme.colors.onSurfaceVariant,
     },
-
     budgetSwapButton: {
       width: 36,
       height: 36,
@@ -99,9 +96,11 @@ export function createHomeStyles(theme: AppTheme) {
       paddingHorizontal: theme.spacing.xs,
     },
     budgetToggleLabel: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.medium,
-      color: theme.colors.onSurface,
+      fontSize: theme.typography.fontSize.xxs,
+      fontWeight: theme.typography.fontWeight.semibold,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      color: theme.colors.onSurfaceVariant,
     },
     toggleTrack: {
       width: 50,
@@ -120,30 +119,6 @@ export function createHomeStyles(theme: AppTheme) {
       backgroundColor: theme.colors.white,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
-    },
-    primaryButton: {
-      ...buttonStyles.base,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: theme.spacing.md,
-    },
-    primaryButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.medium,
-      color: theme.colors.onPrimary,
-    },
-    primaryButtonOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: theme.colors.white,
-      opacity: 0,
     },
     cartCardsContainer: {
       flexDirection: 'row',

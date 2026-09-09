@@ -28,7 +28,7 @@ const stylesheet = StyleSheet.create(theme => {
       gap: theme.spacing.sm,
     },
     label: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: theme.typography.fontSize.xxs,
       fontWeight: theme.typography.fontWeight.semibold,
       color: theme.colors.onSurfaceVariant,
       textTransform: 'uppercase',

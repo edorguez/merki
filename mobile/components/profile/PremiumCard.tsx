@@ -2,8 +2,7 @@ import { View, Text, type ViewStyle, type TextStyle } from 'react-native';
 import { StyleSheet } from '../../styles/createStyleSheet';
 import { useAppTheme } from '../../styles/theme';
 import { createCardStyles } from '../../styles/cards';
-import { createButtonStyles } from '../../styles/buttons';
-import { PressableScale } from '../shared/PressableScale';
+import { Button } from '../Button';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface PremiumCardProps {
@@ -18,7 +17,6 @@ interface PremiumFeature {
 
 const stylesheet = StyleSheet.create(theme => {
   const cardStyles = createCardStyles(theme);
-  const buttonStyles = createButtonStyles(theme);
   return {
     card: {
       ...cardStyles.base,
@@ -79,18 +77,6 @@ const stylesheet = StyleSheet.create(theme => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    upgradeButton: {
-      ...buttonStyles.base,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      alignItems: 'center',
-      marginTop: theme.spacing.sm,
-    },
-    upgradeButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.medium,
-      color: theme.colors.onPrimary,
-    },
   };
 });
 
@@ -129,13 +115,13 @@ export function PremiumCard({ onUpgradePress }: PremiumCardProps) {
           </View>
         ))}
 
-        <PressableScale
-          pressedScale={1.03}
-          style={styles.upgradeButton as ViewStyle}
+        <Button
+          title="Hazte Premium"
           onPress={onUpgradePress}
-        >
-          <Text style={styles.upgradeButtonText as TextStyle}>Hazte Premium</Text>
-        </PressableScale>
+          size="md"
+          fullWidth
+          style={{ marginTop: theme.spacing.sm }}
+        />
       </View>
     </View>
   );

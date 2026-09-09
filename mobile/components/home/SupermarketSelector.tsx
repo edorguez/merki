@@ -44,7 +44,7 @@ export function SupermarketSelector({
             },
           ]}
         >
-          <View style={{ gap: theme.spacing.xs }}>
+          <View>
             <Input
               label="Nombre del Supermercado"
               placeholder="Ej. Plan Suarez"

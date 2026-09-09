@@ -61,7 +61,7 @@ Live audit of which tokens are actually rendered in the mobile app (`mobile/`). 
 | `secondary` / `secondaryPressed` / `onSecondary` | Secondary button variant, cart-complete FAB, selected supermarket chip (border/icon), currency toggle active, tab-bar active pill, product-form icon |
 | `secondaryContainer` / `onSecondaryContainer` | Selected supermarket chip background + label |
 | `secondaryText` | Text-link accents (login / register / forgot-password links) |
-| `emberOrange` | Urgency/status + illustration only: scan live pulse + "Volver", login method icons + spinner, onboarding step icons, history hero icon, NoRecognitionModal warning, BCV status indicator/error |
+| `emberOrange` | Urgency/status + illustration only: scan live pulse + "Volver", login method icons + spinner, onboarding step icons, history hero icon, NoRecognitionModal warning, BCV status indicator/error. Plus sparse ghost-CTA text (`Button` `ghost` variant, e.g., "Entrar como Invitado") — keep ≤1 per screen |
 | `meadowGreen` / `success` / `successPressed` | Success semantics — checkout success, verified badges, premium active, receipt icon, complete state |
 | `skyBlue` / `iceBlue` | Anonymous prompt card, onboarding feature accent, login method icon |
 | `sunburstYellow` / `deepAmber` / `pepper` | Premium/promo cards, tips, payment-pending |
@@ -178,7 +178,7 @@ The following tokens are defined in `mobile/styles/theme.ts` (and mirrored in th
 | medium (mobile) | `0 0 10px rgba(0, 0, 0, 0.4)` | `--shadow-medium` |
 | strong (mobile) | `0 0 10px black` | `--shadow-strong` |
 
-Mobile shadow tokens (`--shadow-soft`, `--shadow-medium`, `--shadow-strong`) are the unified elevation system for the mobile app: `soft` is used on buttons, cards, inputs, and quantity controls; `medium` on selected/active chips (e.g., supermarket selection); `strong` is reserved for highest-emphasis states.
+Mobile shadow tokens (`--shadow-soft`, `--shadow-medium`, `--shadow-strong`) are the unified elevation system for the mobile app: `soft` is used on cards, inputs, and quantity controls; `medium` on pill CTA buttons (the shared `Button`) and selected/active chips (e.g., supermarket selection); `strong` is reserved for highest-emphasis states.
 
 ### Layout
 
@@ -192,7 +192,7 @@ Mobile shadow tokens (`--shadow-soft`, `--shadow-medium`, `--shadow-strong`) are
 ### Primary CTA Button (Pill Dark)
 **Role:** Main conversion action — 'Get Started', 'Download on iOS'
 
-Background #121212, text #ffffff, border-radius 32px, padding 0px 14px. Inter 14px weight 500-600. The near-black pill floats against #fbfaf9 canvas as the site's only dark punch. Hover state likely lightens to #343433 via 0.2s ease transition. **Mobile:** the pill button carries `--shadow-soft`; press feedback scales up to 1.03 with opacity 0.9 (animated via transform/opacity on the UI thread), and corners use `borderCurve: 'continuous'`.
+Background #121212, text #ffffff, border-radius 32px, padding 0px 14px. Inter 14px weight 500-600. The near-black pill floats against #fbfaf9 canvas as the site's only dark punch. Hover state likely lightens to #343433 via 0.2s ease transition. **Mobile:** the primary action maps to the shared `Button` (`primary` green fill) carrying `--shadow-medium`; press feedback spring-scales up to 1.03 (no opacity change) and corners use `borderCurve: 'continuous'`.
 
 ### Secondary CTA Button (Pill Light)
 **Role:** Alternative actions — 'Log In', 'Watch the Video'
@@ -202,7 +202,7 @@ Background #f6f4ef (warm cream), text #121212, border-radius 32px, padding 0px 1
 ### Ghost Text Link Button
 **Role:** Inline navigation links — 'Watch the demo', section CTAs
 
-Background transparent, text color #ff3e00 (Ember Orange), border-radius 0px, padding 4px 0px. No border. Inter 14-15px weight 500. The underline-less orange text link is the signature inline action — orange on cream reads as warm urgency without a button shell. **Mobile:** inline text links (onboarding auth screens) use the AA-safe `secondaryText` (#A3521B) instead of raw #F4A261, which is too low-contrast on cream.
+Background transparent, text color #ff3e00 (Ember Orange), border-radius 0px, padding 4px 0px. No border. Inter 14-15px weight 500. The underline-less orange text link is the signature inline action — orange on cream reads as warm urgency without a button shell. **Mobile:** inline text links (onboarding auth screens) use the AA-safe `secondaryText` (#A3521B) instead of raw #F4A261, which is too low-contrast on cream. A full-width ghost CTA (shared `Button` variant `ghost`) may use ember text as a sparse alternative action (e.g., login "Entrar como Invitado"); keep it to ≤1 per screen.
 
 ### Outlined Navigation Button
 **Role:** Tertiary actions in nav or contextual contexts
@@ -253,11 +253,12 @@ Circular icon badge: background in brand color (Meadow Green for Receive, Flamin
 
 The mobile app (Expo/React Native) implements the same token system (`styles/theme.ts`) and adds a shared surface layer built from small factory modules — `buttons.ts`, `cards.ts`, `inputs.ts` — each a single source of truth for its component family. Changing a token (e.g., `shadows.soft`) updates every affected surface app-wide.
 
-- **Inputs** (`styles/inputs.ts` + shared `Input` component): 10px radius, 1px `stoneSurface` border, `surfaceContainerLow` fill, `--shadow-soft`, 12px padding, placeholder in `onSurfaceVariant`. Focused inputs switch the border to `midnight` (#121212) for clear focus feedback; invalid inputs use `error` (#ff2b3a). Numeric/amount inputs right-align and render a muted read-only state when disabled.
-- **Quantity stepper** (`quantitySection` in `styles/inputs.ts`): a bordered box (`stoneSurface` border, 10px radius, `--shadow-soft`) wrapping the −/+ controls. The −/+ buttons are 30px circles; pressing scales them to 1.1 and shifts the fill — decrement to `surfaceContainerHighest`, increment to `obsidian`. The inline cart-row variant (24px buttons, `ProductCard`) presses to `surfaceContainerHigh`.
-- **Press states**: pill buttons scale up to 1.03 with opacity 0.9 while held (never down — the brand grows on press); quantity buttons scale 1.1 with a color shift. Only `transform` and `opacity` animate (GPU-friendly, no layout work).
+- **Inputs** (`styles/inputs.ts` + shared `Input` component): 10px radius, 1px `stoneSurface` border, `surfaceContainerLow` fill, `--shadow-soft`, **12px horizontal / 8px vertical** padding, placeholder in `onSurfaceVariant`. **Field labels share one token:** 12px (`fontSize.xxs`) Inter semibold uppercase, letter-spacing 1, `onSurfaceVariant` — indented 12px on the shared `Input`/form labels, 8px on home/budget/carousel micro-labels. Focused inputs switch the border to **`primary` green** (`focus` token) for clear focus feedback; invalid inputs use `error` (#ff2b3a). Numeric/amount inputs right-align and render a muted read-only state when disabled.
+- **Quantity stepper** (`quantitySection` in `styles/inputs.ts`): a bordered box (`stoneSurface` 1px border, 10px radius, `--shadow-soft`) wrapping the −/+ controls on a white pill row (`surfaceContainerLowest`, 10px radius). The −/+ buttons are **24px rounded squares (12px radius)**; pressing scales them to 1.1 and shifts the fill — decrement idle `surfaceContainerHigh` → pressed `surfaceContainerHighest`, increment idle **`primary`** → pressed `primaryPressed`. The inlined steppers in ProductForm, ManualEntryModal, and ProductScanResultModal all share this stylesheet.
+- **Press states**: pill buttons (shared `Button`) spring-scale up to 1.03 while held (never down — the brand grows on press; no opacity change); quantity buttons scale 1.1 with a color shift. Only `transform` and `opacity` animate (GPU-friendly, no layout work).
+- **Buttons (shared `Button`)** (`components/Button.tsx`): the single CTA component used across the app. Variants — `primary` (green fill, `onPrimary` text), `secondary` (sand fill, `onSecondary` text), `outline` (transparent, 1px `graphite` border, `graphite` text), `neutral` (transparent, 1px `stoneSurface` border, `onSurfaceVariant` text — modal Cancel/Retry pairs), `ghost` (transparent, no border, ember text — e.g., "Entrar como Invitado"). Sizes `sm` (H12/V8, text 13px), `md` (H16/V12, text 14px), `lg` (H24/V16, text 14px); text weight 500; radius-32 pill with `--shadow-medium`. Props: `leadingIcon`, `trailingIcon`, `isLoading`, `disabled`, `fullWidth`, `style`; the loading spinner color follows the variant's text color.
 - **Cards**: white cards use a 1px `stoneSurface` CSS border plus `--shadow-soft` (instead of the web's inset-border technique); colorful/featured cards that clip decorative blobs (`overflow: hidden`) intentionally skip the outer shadow.
-- **Carousels**: horizontally scrolling chips/cards bleed to the screen edge via a negative-margin ScrollView; the content container carries the padding so the final item scrolls fully into view. The selected supermarket chip lifts with `--shadow-medium`.
+- **Carousels**: horizontally scrolling chips/cards bleed to the screen edge via a negative-margin ScrollView; the content container carries the padding so the final item scrolls fully into view. Supermarket chips are 80px squares (10px radius) with 12px (`xxs`) semibold names and ~4px bottom clearance; the selected chip lifts with `--shadow-medium`.
 
 ## Do's and Don'ts
 

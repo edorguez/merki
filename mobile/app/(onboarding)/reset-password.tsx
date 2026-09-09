@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
 import { Input } from '../../components/shared/Input';
+import { Button } from '../../components/Button';
 import { resetPassword } from '../../lib/auth-client';
 import { Toast } from '../../components/shared/Toast';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -14,7 +14,6 @@ export default function ResetPasswordScreen() {
   const params = useLocalSearchParams<{ token?: string }>();
   const token = typeof params.token === 'string' ? params.token : '';
   const theme = useAppTheme();
-  const buttonStyles = createButtonStyles(theme);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -114,20 +113,6 @@ export default function ResetPasswordScreen() {
     form: {
       gap: theme.spacing.md,
     },
-    resetButton: {
-      ...buttonStyles.base,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-    },
-    resetButtonText: {
-      color: theme.colors.onPrimary,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
     invalid: {
       alignItems: 'center',
       gap: theme.spacing.sm,
@@ -158,13 +143,13 @@ export default function ResetPasswordScreen() {
               El enlace no es válido o ha expirado. Solicita uno nuevo desde la pantalla de inicio
               de sesión.
             </Text>
-            <Pressable
+            <Button
+              title="Ir a Iniciar Sesión"
               onPress={() => router.replace('/(onboarding)/login')}
-              style={({ pressed }) => [styles.resetButton, pressed && buttonStyles.pressed]}
-            >
-              <MaterialIcons name="login" size={20} color={theme.colors.white} />
-              <Text style={styles.resetButtonText}>Ir a Iniciar Sesión</Text>
-            </Pressable>
+              size="lg"
+              style={{ alignSelf: 'center' }}
+              leadingIcon={<MaterialIcons name="login" size={20} color={theme.colors.onPrimary} />}
+            />
           </View>
         </View>
       </View>
@@ -241,24 +226,17 @@ export default function ResetPasswordScreen() {
               maxLength={20}
             />
 
-            <Pressable
+            <Button
+              title="Restablecer contraseña"
               onPress={handleReset}
+              size="lg"
+              fullWidth
+              isLoading={isLoading}
               disabled={isLoading}
-              style={({ pressed }) => [
-                styles.resetButton,
-                pressed && buttonStyles.pressed,
-                isLoading && { opacity: 0.6 },
-              ]}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color={theme.colors.white} />
-              ) : (
-                <>
-                  <MaterialIcons name="vpn-key" size={20} color={theme.colors.white} />
-                  <Text style={styles.resetButtonText}>Restablecer contraseña</Text>
-                </>
-              )}
-            </Pressable>
+              leadingIcon={
+                <MaterialIcons name="vpn-key" size={20} color={theme.colors.onPrimary} />
+              }
+            />
           </View>
         </View>
       </ScrollView>

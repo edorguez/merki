@@ -40,7 +40,7 @@ const stylesheet = StyleSheet.create(theme => {
       backgroundColor: theme.colors.meadowGreen,
     },
     headerLabel: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: theme.typography.fontSize.xxs,
       fontWeight: theme.typography.fontWeight.semibold,
       color: theme.colors.textSecondary,
       textTransform: 'uppercase',
@@ -135,12 +135,7 @@ export const BCVRateCard = forwardRef<BCVRateRef, object>((_props, ref) => {
           Tasa BCV no disponible
         </Text>
         <View style={{ marginTop: theme.spacing.sm }}>
-          <Button
-            title="Reintentar"
-            variant="outline"
-            size="small"
-            onPress={() => loadRate(true)}
-          />
+          <Button title="Reintentar" variant="outline" size="sm" onPress={() => loadRate(true)} />
         </View>
       </View>
     );

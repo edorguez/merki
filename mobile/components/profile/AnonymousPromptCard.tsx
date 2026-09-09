@@ -2,9 +2,8 @@ import { View, Text, type ViewStyle, type TextStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { StyleSheet } from '../../styles/createStyleSheet';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
+import { Button } from '../Button';
 import { useFloat } from '../../hooks/animations';
-import { PressableScale } from '../shared/PressableScale';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface AnonymousPromptCardProps {
@@ -12,7 +11,6 @@ interface AnonymousPromptCardProps {
 }
 
 const stylesheet = StyleSheet.create(theme => {
-  const buttonStyles = createButtonStyles(theme);
   return {
     card: {
       position: 'relative',
@@ -73,18 +71,6 @@ const stylesheet = StyleSheet.create(theme => {
       color: theme.colors.graphite,
       opacity: 0.8,
     },
-    loginButton: {
-      ...buttonStyles.base,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      alignItems: 'center',
-    },
-    loginButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.medium,
-      color: theme.colors.onPrimary,
-    },
   };
 });
 
@@ -110,13 +96,7 @@ export function AnonymousPromptCard({ onLoginPress }: AnonymousPromptCardProps) 
             <Text style={styles.featureText as TextStyle}>{benefit}</Text>
           </View>
         ))}
-        <PressableScale
-          pressedScale={1.03}
-          style={styles.loginButton as ViewStyle}
-          onPress={onLoginPress}
-        >
-          <Text style={styles.loginButtonText as TextStyle}>Registrarse</Text>
-        </PressableScale>
+        <Button title="Registrarse" onPress={onLoginPress} size="md" fullWidth />
       </View>
     </View>
   );

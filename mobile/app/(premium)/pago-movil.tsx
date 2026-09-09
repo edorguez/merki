@@ -5,10 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
 import { createCardStyles } from '../../styles/cards';
 import { createInputStyles } from '../../styles/inputs';
 import { Input } from '../../components/shared/Input';
+import { Button } from '../../components/Button';
 import { TopAppBar } from '../../components/shared/TopAppBar';
 import { Toast } from '../../components/shared/Toast';
 import { PickerField } from '../../components/shared/PickerField';
@@ -73,7 +73,6 @@ export default function PagoMovilScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { rate: bcvRate } = useBCV();
-  const buttonStyles = useMemo(() => createButtonStyles(theme), [theme]);
   const cardStyles = useMemo(() => createCardStyles(theme), [theme]);
 
   const { billing, usdPrice, periodLabel } = useLocalSearchParams<{
@@ -290,7 +289,7 @@ export default function PagoMovilScreen() {
         gap: theme.spacing.sm,
       },
       label: {
-        fontSize: theme.typography.fontSize.xs,
+        fontSize: theme.typography.fontSize.xxs,
         fontWeight: theme.typography.fontWeight.semibold,
         color: theme.colors.onSurfaceVariant,
         textTransform: 'uppercase',
@@ -336,22 +335,8 @@ export default function PagoMovilScreen() {
         borderTopColor: theme.colors.stoneSurface,
         padding: theme.spacing.lg,
       },
-      submitButton: {
-        ...buttonStyles.base,
-        backgroundColor: theme.colors.primary,
-        paddingVertical: theme.spacing.md,
-        alignItems: 'center',
-      },
-      submitButtonPressed: {
-        ...buttonStyles.pressed,
-      },
-      submitText: {
-        fontSize: theme.typography.fontSize.sm,
-        fontWeight: theme.typography.fontWeight.semibold,
-        color: theme.colors.onPrimary,
-      },
     });
-  }, [theme, buttonStyles, cardStyles]);
+  }, [theme, cardStyles]);
 
   return (
     <View style={styles.container}>
@@ -513,12 +498,7 @@ export default function PagoMovilScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
-        <Pressable
-          style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonPressed]}
-          onPress={handleSubmit}
-        >
-          <Text style={styles.submitText}>Enviar comprobante</Text>
-        </Pressable>
+        <Button title="Enviar comprobante" onPress={handleSubmit} size="md" fullWidth />
       </View>
 
       {showDatePicker && Platform.OS === 'ios' && (

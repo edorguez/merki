@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { StyleSheet } from '../../styles/createStyleSheet';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
+import { Button } from '../Button';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MODAL_WIDTH = Math.min(SCREEN_WIDTH * 0.9, 400);
@@ -23,7 +23,6 @@ interface NoRecognitionModalProps {
 }
 
 const stylesheet = StyleSheet.create(theme => {
-  const buttonStyles = createButtonStyles(theme);
   return {
     modalContainer: {
       flex: 1,
@@ -60,42 +59,12 @@ const stylesheet = StyleSheet.create(theme => {
       gap: theme.spacing.xxs,
       marginTop: theme.spacing.sm,
     },
-    retryButton: {
-      ...buttonStyles.base,
-      flex: 1,
-      paddingVertical: theme.spacing.md,
-      borderWidth: 1,
-      borderColor: theme.colors.stoneSurface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    retryButtonText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.onSurfaceVariant,
-    },
-    manualButton: {
-      ...buttonStyles.base,
-      flex: 1,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-    },
-    manualButtonText: {
-      color: theme.colors.onPrimary,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-    },
   };
 });
 
 export function NoRecognitionModal({ isVisible, onClose, onManualEntry }: NoRecognitionModalProps) {
   const theme = useAppTheme();
   const styles = stylesheet(theme);
-  const buttonStyles = createButtonStyles(theme);
 
   const slideAnim = useRef(new Animated.Value(500)).current;
 
@@ -128,28 +97,23 @@ export function NoRecognitionModal({ isVisible, onClose, onManualEntry }: NoReco
             </Text>
 
             <View style={styles.actionRow as ViewStyle}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.retryButton as ViewStyle,
-                  pressed && buttonStyles.pressed,
-                ]}
+              <Button
+                title="Reintentar"
                 onPress={onClose}
-              >
-                <Text style={styles.retryButtonText as TextStyle}>Reintentar</Text>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.manualButton as ViewStyle,
-                  pressed && buttonStyles.pressed,
-                ]}
+                variant="neutral"
+                size="md"
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Ingreso manual"
                 onPress={() => {
                   onClose();
                   onManualEntry();
                 }}
-              >
-                <Text style={styles.manualButtonText as TextStyle}>Ingreso manual</Text>
-              </Pressable>
+                variant="primary"
+                size="md"
+                style={{ flex: 1 }}
+              />
             </View>
           </Pressable>
         </Animated.View>

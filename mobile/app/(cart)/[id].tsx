@@ -2,7 +2,6 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCartStore, type Cart, type CartProduct } from '../../store/cartStore';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
 import { createCartDetailStyles } from '../../styles/cartDetailStyles';
 import { ProductCard } from '../../components/cart/ProductCard';
 import { BudgetSummary } from '../../components/cart/BudgetSummary';
@@ -14,6 +13,7 @@ import { FadeIn } from '../../components/shared/FadeIn';
 import { Skeleton } from '../../components/shared/Skeleton';
 import { Toast } from '../../components/shared/Toast';
 import { ProductForm } from '../../components/cart/ProductForm';
+import { Button } from '../../components/Button';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import {
@@ -33,7 +33,6 @@ export default function CartDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const theme = useAppTheme();
-  const buttonStyles = createButtonStyles(theme);
   const {
     carts,
     addCart,
@@ -343,15 +342,16 @@ export default function CartDetailScreen() {
 
       <View style={styles.buttonBarContainer}>
         <View style={styles.buttonBar}>
-          <Pressable
-            style={({ pressed }) => [styles.button, pressed && buttonStyles.pressed]}
+          <Button
+            title="Agregar"
             onPress={() => setShowAddProduct(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Agregar producto"
-          >
-            <MaterialIcons name="add" size={theme.iconSize.xs} color={theme.colors.onPrimary} />
-            <Text style={styles.buttonText}>Agregar</Text>
-          </Pressable>
+            variant="primary"
+            size="sm"
+            style={{ flex: 1 }}
+            leadingIcon={
+              <MaterialIcons name="add" size={theme.iconSize.xs} color={theme.colors.onPrimary} />
+            }
+          />
 
           <Pressable
             style={({ pressed }) => [
@@ -369,15 +369,20 @@ export default function CartDetailScreen() {
             />
           </Pressable>
 
-          <Pressable
-            style={({ pressed }) => [styles.button, pressed && buttonStyles.pressed]}
+          <Button
+            title="Escanear"
             onPress={handleScanPress}
-            accessibilityRole="button"
-            accessibilityLabel="Escanear producto"
-          >
-            <MaterialIcons name="camera-alt" size={theme.iconSize.xs} color={theme.colors.white} />
-            <Text style={styles.buttonText}>Escanear</Text>
-          </Pressable>
+            variant="primary"
+            size="sm"
+            style={{ flex: 1 }}
+            leadingIcon={
+              <MaterialIcons
+                name="camera-alt"
+                size={theme.iconSize.xs}
+                color={theme.colors.onPrimary}
+              />
+            }
+          />
         </View>
       </View>
 

@@ -110,7 +110,7 @@ export function OnboardingChrome({ children }: OnboardingChromeProps) {
         <Button
           title="Siguiente"
           onPress={() => router.push(NEXT_ROUTE[route as (typeof STEP_ROUTES)[number]])}
-          size="large"
+          size="lg"
           fullWidth
         />
       </View>

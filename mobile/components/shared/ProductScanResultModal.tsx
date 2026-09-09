@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
+import { Button } from '../Button';
 import { createProductScanResultModalStyles } from '../../styles/productScanResultModalStyles';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -38,7 +38,6 @@ export function ProductScanResultModal({
 }: ProductScanResultModalProps) {
   const theme = useAppTheme();
   const styles = createProductScanResultModalStyles(theme);
-  const buttonStyles = createButtonStyles(theme);
 
   const [quantity, setQuantity] = useState(1);
 
@@ -139,29 +138,26 @@ export function ProductScanResultModal({
             </View>
 
             <View style={styles.actionRow as ViewStyle}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.retryButton as ViewStyle,
-                  pressed && buttonStyles.pressed,
-                ]}
+              <Button
+                title="Reintentar"
                 onPress={onClose}
-              >
-                <Text style={styles.retryButtonText as TextStyle}>Reintentar</Text>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.addButton as ViewStyle,
-                  pressed && buttonStyles.pressed,
-                ]}
+                variant="neutral"
+                size="md"
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Añadir"
                 onPress={() => {
                   onAddToCart(quantity);
                   onClose();
                 }}
-              >
-                <MaterialIcons name="add-circle" size={20} color={theme.colors.white} />
-                <Text style={styles.addButtonText as TextStyle}>Añadir</Text>
-              </Pressable>
+                variant="primary"
+                size="md"
+                style={{ flex: 1 }}
+                leadingIcon={
+                  <MaterialIcons name="add-circle" size={20} color={theme.colors.onPrimary} />
+                }
+              />
             </View>
           </Pressable>
         </Animated.View>

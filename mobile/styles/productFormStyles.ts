@@ -40,7 +40,7 @@ export function createProductFormStyles(theme: AppTheme) {
       gap: theme.spacing.sm,
     },
     label: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: theme.typography.fontSize.xxs,
       fontWeight: theme.typography.fontWeight.semibold,
       textTransform: 'uppercase',
       letterSpacing: 1,

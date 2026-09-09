@@ -4,11 +4,11 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAppTheme } from '../../styles/theme';
-import { createButtonStyles } from '../../styles/buttons';
 import { createCardStyles } from '../../styles/cards';
 import { useCountUp } from '../../hooks/animations';
 import { FadeIn } from '../../components/shared/FadeIn';
 import { TopAppBar } from '../../components/shared/TopAppBar';
+import { Button } from '../../components/Button';
 
 type BillingPeriod = 'monthly' | 'quarterly' | 'annual';
 
@@ -48,7 +48,6 @@ const PREMIUM_FEATURES = ['Sin publicidad en la app', 'Acceso a futuras funcione
 
 export default function PlansScreen() {
   const theme = useAppTheme();
-  const buttonStyles = createButtonStyles(theme);
   const cardStyles = createCardStyles(theme);
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -204,20 +203,6 @@ export default function PlansScreen() {
       padding: theme.spacing.lg,
       gap: theme.spacing.md,
     },
-    submitButton: {
-      ...buttonStyles.base,
-      backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.md,
-      alignItems: 'center',
-    },
-    submitButtonPressed: {
-      ...buttonStyles.pressed,
-    },
-    submitText: {
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.semibold,
-      color: theme.colors.onPrimary,
-    },
   });
 
   return (
@@ -283,12 +268,12 @@ export default function PlansScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
-        <Pressable
-          style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonPressed]}
+        <Button
+          title={`Suscribirse por $${selected.price.toFixed(2)}`}
           onPress={handleSubmit}
-        >
-          <Text style={styles.submitText}>Suscribirse por ${selected.price.toFixed(2)}</Text>
-        </Pressable>
+          size="md"
+          fullWidth
+        />
       </View>
     </View>
   );
