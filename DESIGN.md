@@ -19,7 +19,7 @@ Family lands like a children's book dropped into a fintech dashboard — warm of
 | Name | Value | Token | Role |
 |------|-------|-------|------|
 | Primary Green | `#339933` | `--color-primary` | Primary brand color — buttons, active/selected states, links |
-| Secondary Sand | `#F4A261` | `--color-secondary` | Secondary actions (buttons, cart-complete FAB), selected/active chips, currency toggle active, icon highlights |
+| Secondary Sand | `#F4A261` | `--color-secondary` | Secondary actions (buttons, cart-complete FAB), selected/active chips, icon highlights |
 | Secondary Pressed | `#E08B3F` | `--color-secondary-pressed` | Pressed/hover state of secondary fills |
 | On Secondary | `#2A1C0E` | `--color-on-secondary` | Text/icons on secondary fills (dark warm brown, ≥4.5:1 on `#F4A261`) |
 | Secondary Container | `#FBE8D6` | `--color-secondary-container` | Soft 10% tint — selected chip backgrounds, secondary-tinted surfaces |
@@ -57,8 +57,8 @@ Live audit of which tokens are actually rendered in the mobile app (`mobile/`). 
 
 | Token | Where |
 |-------|-------|
-| `primary` / `primaryPressed` / `primaryText` / `onPrimary` | Main CTA buttons, focus states, quantity increment, budget swap icon, primary links |
-| `secondary` / `secondaryPressed` / `onSecondary` | Secondary button variant, cart-complete FAB, selected supermarket chip (border/icon), currency toggle active, tab-bar active pill, product-form icon |
+| `primary` / `primaryPressed` / `primaryText` / `onPrimary` | Main CTA buttons, focus states, quantity increment, currency toggle active, budget swap icon, primary links |
+| `secondary` / `secondaryPressed` / `onSecondary` | Secondary button variant, cart-complete FAB, selected supermarket chip (border/icon), tab-bar active pill, product-form icon |
 | `secondaryContainer` / `onSecondaryContainer` | Selected supermarket chip background + label |
 | `secondaryText` | Text-link accents (login / register / forgot-password links) |
 | `emberOrange` | Urgency/status + illustration only: scan live pulse + "Volver", login method icons + spinner, onboarding step icons, history hero icon, NoRecognitionModal warning, BCV status indicator/error. Plus sparse ghost-CTA text (`Button` `ghost` variant, e.g., "Entrar como Invitado") — keep ≤1 per screen |
@@ -269,7 +269,7 @@ The mobile app (Expo/React Native) implements the same token system (`styles/the
 - Apply tight negative letter-spacing to all large text: -2.11px at 68px display, -1.14px at 44px heading-lg, scaling to near-zero at body sizes.
 - Restrict the Fraunces display typeface to display and large section headings only (44px and 68px) — Inter handles all UI text regardless of weight.
 - Use Ember Orange (#ff3e00) exclusively for urgency/status moments (live scan indicator, error-ish warnings, method icons) and illustration accents — never as a general warm link/button accent; that role belongs to Secondary Sand (#F4A261).
-- Use #F4A261 for secondary actions (secondary button variant, cart-complete FAB), selected/active states (supermarket chip, currency toggle, tab-bar active pill), and icon highlights — keep it to a few spots per screen, never as a page background.
+- Use #F4A261 for secondary actions (secondary button variant, cart-complete FAB), selected/active states (supermarket chip, tab-bar active pill), and icon highlights — keep it to a few spots per screen, never as a page background.
 - Pair #F4A261 with dark text (#2A1C0E) on its fills, and use #A3521B for any secondary-colored link/accent text — the raw sand fails 4.5:1 contrast on cream/white.
 - Space illustration characters asymmetrically around hero text — overlap the headline bounding box with characters to create depth through layering, not z-index stacking.
 
