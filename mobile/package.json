@@ -43,6 +43,7 @@
     "expo-sqlite": "~55.0.15",
     "expo-status-bar": "~55.0.5",
     "expo-system-ui": "~55.0.15",
+    "expo-tracking-transparency": "~55.0.18",
     "expo-web-browser": "~55.0.14",
     "form-data": "^4.0.5",
     "react": "19.2.0",

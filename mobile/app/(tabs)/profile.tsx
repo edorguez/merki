@@ -3,6 +3,7 @@ import {
   Text,
   ScrollView,
   Pressable,
+  Platform,
   type ViewStyle,
   type TextStyle,
   type ImageStyle,
@@ -72,6 +73,10 @@ export default function ProfileTab() {
   };
 
   const handleUpgrade = async () => {
+    if (Platform.OS === 'ios') {
+      setToast('La compra de Premium estará disponible próximamente en iOS');
+      return;
+    }
     if (!isOnline) {
       setToast('Se necesita conexión a internet para gestionar tu suscripción');
       return;

@@ -63,8 +63,9 @@ the var names only.
 - [ ] **Google Play Console → Data safety form**: declare "Advertising or marketing" + ad/device IDs; confirm Google Ads ID policy.
 - [ ] **App Store Connect → App Privacy**: declare "Identifiers — Advertising ID / Device ID" for third-party advertising.
 - [ ] **GDPR consent**: implement UMP via the bundled `AdsConsent` module (EEA/UK users).
-- [ ] **iOS ATT**: add `expo-tracking-transparency` + `NSUserTrackingUsageDescription` for personalized ads.
-- [ ] **Privacy policy URL**: required in both store listings; link in-app (e.g., Profile/Settings) and mention ad SDKs.
+- [x] **iOS ATT**: `expo-tracking-transparency` installed + `NSUserTrackingUsageDescription` in `app.json`; the permission is requested on app start before `MobileAds().initialize()` (`mobile/app/_layout.tsx`), with `delayAppMeasurementInit: true` on the AdMob plugin.
+- [x] **iOS premium purchase hidden**: `pago-móvil` is unreachable on iOS (`app/(tabs)/profile.tsx`, `app/(premium)/plans.tsx`) to comply with App Store Guideline 3.1.1 (external payment for a digital good). Re-enable only via In-App Purchase.
+- [ ] **Privacy policy URL**: `https://somosmerki.app/privacy` exists in the web app; confirm it is live and reference it in both store listings. Link it in-app (e.g., Profile/Settings).
 - [ ] **Publish** on Play Store + App Store, then flip the status at the top of this file to "wired & live".
 
 ## Not a secret

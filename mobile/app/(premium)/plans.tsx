@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -53,6 +53,7 @@ export default function PlansScreen() {
   const insets = useSafeAreaInsets();
 
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+  const isIos = Platform.OS === 'ios';
 
   const selected = BILLING_OPTIONS.find(b => b.id === billingPeriod)!;
 
@@ -203,6 +204,12 @@ export default function PlansScreen() {
       padding: theme.spacing.lg,
       gap: theme.spacing.md,
     },
+    iosNotice: {
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: theme.typography.fontWeight.medium,
+      color: theme.colors.ash,
+      textAlign: 'center',
+    },
   });
 
   return (
@@ -268,12 +275,18 @@ export default function PlansScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
-        <Button
-          title={`Suscribirse por $${selected.price.toFixed(2)}`}
-          onPress={handleSubmit}
-          size="md"
-          fullWidth
-        />
+        {isIos ? (
+          <Text style={styles.iosNotice}>
+            La compra de Premium estará disponible próximamente en iOS
+          </Text>
+        ) : (
+          <Button
+            title={`Suscribirse por $${selected.price.toFixed(2)}`}
+            onPress={handleSubmit}
+            size="md"
+            fullWidth
+          />
+        )}
       </View>
     </View>
   );

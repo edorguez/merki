@@ -68,6 +68,13 @@ export function NativeAsset() {
   return null;
 }
 
+export function MobileAds() {
+  return {
+    initialize: async () => [],
+    setRequestConfiguration: async () => {},
+  };
+}
+
 export const NativeAssetType = {
   ADVERTISER: 'advertiser',
   BODY: 'body',
