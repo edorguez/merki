@@ -1,5 +1,5 @@
 # Makefile for Merki Project
-.PHONY: help build test test-race lint run generate deps docker-build docker-up docker-down docker-server-up docker-auth-up migrate-up migrate-down clean swagger coverage mobile-apk mobile-aab
+.PHONY: help build test test-race lint run generate deps docker-build docker-up docker-down docker-server-up docker-auth-up migrate-up migrate-down clean swagger coverage mobile-apk mobile-aab mobile-ios mobile-ios-release
 
 # Variables
 BINARY_NAME=merki-server
@@ -37,6 +37,8 @@ help:
 	@echo "  ${GREEN}coverage${NC}          - Generate test coverage report"
 	@echo "  ${GREEN}mobile-apk${NC}        - Build a shareable Android APK (release)"
 	@echo "  ${GREEN}mobile-aab${NC}        - Build Android App Bundle (.aab) for production with EAS"
+	@echo "  ${GREEN}mobile-ios${NC}        - Build iOS (production) with EAS"
+	@echo "  ${GREEN}mobile-ios-release${NC} - Build + submit iOS to TestFlight with EAS"
 
 # Example: make build
 ## Build: Build the backend binary
@@ -189,6 +191,30 @@ mobile-apk:
 mobile-aab:
 	@echo "${YELLOW}Building Android App Bundle con EAS (production)...${NC}"
 	cd mobile && npx eas build --platform android --profile production
+
+# Example: make mobile-ios
+## Mobile: Build iOS (production) with EAS
+## Optionally bump the marketing version first: make mobile-ios VERSION=1.0.5
+mobile-ios:
+	@if [ -n "$(VERSION)" ]; then \
+		echo "${YELLOW}Setting mobile version to $(VERSION)...${NC}"; \
+		node -e "const fs=require('fs');const p='mobile/app.json';const j=JSON.parse(fs.readFileSync(p));j.expo.version='$(VERSION)';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n');"; \
+	fi
+	@echo "${YELLOW}Building iOS (production) con EAS...${NC}"
+	cd mobile && npx eas build --platform ios --profile production
+
+# Example: make mobile-ios-release
+## Mobile: Build + submit iOS to TestFlight with EAS
+## Optionally bump the marketing version first: make mobile-ios-release VERSION=1.0.5
+mobile-ios-release:
+	@if [ -n "$(VERSION)" ]; then \
+		echo "${YELLOW}Setting mobile version to $(VERSION)...${NC}"; \
+		node -e "const fs=require('fs');const p='mobile/app.json';const j=JSON.parse(fs.readFileSync(p));j.expo.version='$(VERSION)';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n');"; \
+	fi
+	@echo "${YELLOW}Building iOS (production) con EAS...${NC}"
+	cd mobile && npx eas build --platform ios --profile production
+	@echo "${YELLOW}Submitting latest iOS build to TestFlight...${NC}"
+	cd mobile && npx eas submit --platform ios --profile production --latest
 
 ## Default target
 default: help

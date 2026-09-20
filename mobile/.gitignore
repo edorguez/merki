@@ -18,6 +18,9 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# local signing credentials (ASC API keys, certs) — never commit
+credentials/
+
 # Metro
 .metro-health-check*
 
