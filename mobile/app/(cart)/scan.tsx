@@ -403,7 +403,7 @@ export default function ScanScreen() {
           style={StyleSheet.absoluteFillObject}
           facing={cameraType}
           ratio="16:9"
-          autofocus="on"
+          autofocus="off"
         />
 
         <View style={styles.overlayPanels} pointerEvents="none">
