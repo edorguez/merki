@@ -23,11 +23,26 @@ async function loadMLKit(): Promise<RecognizeTextFn | null> {
     recognizeTextImpl = recognizeText;
     return recognizeTextImpl;
   } catch {
-    console.warn('[OCR] ML Kit not available');
+    if (__DEV__) console.warn('[OCR] ML Kit not available');
     return null;
   }
 }
 
+// Never fabricate a product: when OCR is unavailable the caller must run the
+// manual-entry flow instead of silently adding a fake item.
+function noRecognitionResult(warning: string): ScanResult {
+  return {
+    productName: null,
+    price: 0,
+    currency: 'BS',
+    priceBs: 0,
+    priceUsd: 0,
+    confidence: 0,
+    warning,
+  };
+}
+
+// Dev-only fixture, opt-in via EXPO_PUBLIC_OCR_MOCK=1. Never used in release.
 async function mockScanImage(_imageUri: string): Promise<ScanResult> {
   await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -77,15 +92,7 @@ export async function rotateImage(
 export async function scanImage(imageUri: string): Promise<ScanResult> {
   const fileInfo = await FileSystem.getInfoAsync(imageUri);
   if (!fileInfo.exists) {
-    return {
-      productName: null,
-      price: 0,
-      currency: 'BS',
-      priceBs: 0,
-      priceUsd: 0,
-      confidence: 0,
-      warning: 'No se pudo encontrar la imagen. Intenta nuevamente.',
-    };
+    return noRecognitionResult('No se pudo encontrar la imagen. Intenta nuevamente.');
   }
 
   const enhancedUri = await preprocessImage(imageUri);
@@ -98,8 +105,10 @@ export async function scanImage(imageUri: string): Promise<ScanResult> {
     const result = await recognizer(enhancedUri);
     text = result.text;
     blocks = result.blocks;
-  } else {
+  } else if (__DEV__ && process.env.EXPO_PUBLIC_OCR_MOCK === '1') {
     return mockScanImage(imageUri);
+  } else {
+    return noRecognitionResult('No se pudo iniciar el reconocimiento de texto. Intenta de nuevo.');
   }
 
   const exchangeRate = await getExchangeRate();

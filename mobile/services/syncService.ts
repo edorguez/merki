@@ -15,6 +15,37 @@ import {
 } from '../types/sync';
 
 let isSyncing = false;
+let isFlushing = false;
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function isNetworkReachable(): Promise<boolean> {
+  try {
+    const network = await import('expo-network');
+    const state = await network.getNetworkStateAsync();
+    return state.isConnected !== false && state.isInternetReachable !== false;
+  } catch {
+    return false;
+  }
+}
+
+// Drains the sync queue without blocking callers. Keeps going while work was
+// enqueued mid-sync, but never spins forever on repeated failures.
+async function drainQueue(userId?: string): Promise<void> {
+  if (isFlushing) return;
+  if (!(await isNetworkReachable())) return;
+
+  isFlushing = true;
+  try {
+    for (let i = 0; i < 5; i++) {
+      const { synced, failed } = await syncService.syncAll(userId);
+      if (failed > 0 || synced === 0) break;
+      const pending = await syncQueue.getPendingCount();
+      if (pending === 0) break;
+    }
+  } finally {
+    isFlushing = false;
+  }
+}
 
 export const syncService = {
   async syncAll(userId?: string): Promise<{
@@ -142,6 +173,27 @@ export const syncService = {
 
   async getPendingCount(): Promise<number> {
     return syncQueue.getPendingCount();
+  },
+
+  // Queue a mutation without touching the network. Callers return to the UI
+  // immediately; the op is flushed in the background.
+  async enqueue(
+    table: SyncTable,
+    action: SyncAction,
+    localId: string,
+    payload: Record<string, unknown>
+  ): Promise<void> {
+    await syncQueue.enqueue(table, action, localId, payload);
+  },
+
+  // Fire-and-forget flush so mutations never block on the network. Debounced to
+  // coalesce bursts, then drains the queue when connectivity allows.
+  flushInBackground(userId?: string): void {
+    if (flushTimer) clearTimeout(flushTimer);
+    flushTimer = setTimeout(() => {
+      flushTimer = null;
+      void drainQueue(userId);
+    }, 300);
   },
 
   isSyncing(): boolean {

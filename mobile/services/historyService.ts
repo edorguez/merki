@@ -28,16 +28,21 @@ export async function getCarts(userId?: string, limit?: number): Promise<ApiCart
       serverCarts = response.data.map(transformCartResponse);
 
       for (const cart of serverCarts) {
-        await cartRepository.upsert({
-          id: cart.id,
-          supermarketId: cart.supermarketId,
-          supermarketName: cart.supermarketName,
-          userId,
-          isActive: cart.isActive,
-          hasBudget: cart.hasBudget,
-          budgetBs: cart.budgetBs ?? 0,
-          budgetUsd: cart.budgetUsd ?? 0,
-        });
+        try {
+          await cartRepository.upsert({
+            id: cart.id,
+            supermarketId: cart.supermarketId,
+            supermarketName: cart.supermarketName,
+            userId,
+            isActive: cart.isActive,
+            hasBudget: cart.hasBudget,
+            budgetBs: cart.budgetBs ?? 0,
+            budgetUsd: cart.budgetUsd ?? 0,
+          });
+        } catch {
+          // Keep the server data even if a local write fails; don't discard
+          // the freshly fetched carts.
+        }
       }
     } else {
       throw new Error('Error al obtener el historial');

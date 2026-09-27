@@ -253,6 +253,7 @@ export function CreateCartSection({ userId, onCartCreated }: CreateCartSectionPr
       const result = await createCart(
         {
           supermarketId: finalSupermarketId,
+          supermarketName: finalName,
           newSupermarket: finalSupermarketId ? undefined : { name: finalName || '' },
           hasBudget,
           budgetBs: hasBudget ? finalBs : null,

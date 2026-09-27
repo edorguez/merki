@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './api';
+import { apiGet } from './api';
 import { cartRepository } from '../lib/local/repositories/cartRepository';
 import { cartProductRepository } from '../lib/local/repositories/cartProductRepository';
 import { syncService } from './syncService';
@@ -20,6 +20,7 @@ import { SYNC_ACTIONS, SYNC_TABLES } from '../types/sync';
 
 export interface CreateCartParams {
   supermarketId?: string;
+  supermarketName?: string;
   newSupermarket?: { name: string };
   hasBudget: boolean;
   budgetBs: number | null;
@@ -195,7 +196,7 @@ export async function createCart(
   const t0 = Date.now();
   const localCart = await cartRepository.upsert({
     supermarketId: params.supermarketId || generateLocalId(),
-    supermarketName: params.newSupermarket?.name || "Plaza's",
+    supermarketName: params.newSupermarket?.name || params.supermarketName || '',
     userId,
     hasBudget: params.hasBudget,
     budgetBs: params.budgetBs ?? 0,
@@ -265,45 +266,38 @@ export async function addCartProduct(
   });
 
   const t1 = Date.now();
-  const serverVersion = await syncService.enqueueAndSync(
-    SYNC_TABLES.CART_PRODUCTS,
-    SYNC_ACTIONS.INSERT,
-    localProduct.id,
-    {
-      id: localProduct.id,
-      cartId: params.cartId,
-      supermarketId: params.supermarketId,
-      name: params.name,
-      priceUsd: toCents(params.priceUsd),
-      priceBs: toCents(params.priceBs),
-      priceBcv: params.priceBcv !== undefined ? toCents(params.priceBcv) : 0,
-      quantity: params.quantity,
-      isManualEntry: params.isManualEntry ?? true,
-      barcode: params.barcode || null,
-      isWeightBased: params.isWeightBased,
-      imageUrl: params.imageUrl || null,
-      userId,
-    },
-    userId
-  );
+  await syncService.enqueue(SYNC_TABLES.CART_PRODUCTS, SYNC_ACTIONS.INSERT, localProduct.id, {
+    id: localProduct.id,
+    cartId: params.cartId,
+    supermarketId: params.supermarketId,
+    name: params.name,
+    priceUsd: toCents(params.priceUsd),
+    priceBs: toCents(params.priceBs),
+    priceBcv: params.priceBcv !== undefined ? toCents(params.priceBcv) : 0,
+    quantity: params.quantity,
+    isManualEntry: params.isManualEntry ?? true,
+    barcode: params.barcode || null,
+    isWeightBased: params.isWeightBased,
+    imageUrl: params.imageUrl || null,
+    userId,
+  });
+  syncService.flushInBackground(userId);
 
   const t2 = Date.now();
   await recalcCartTotals(params.cartId);
   console.log('[cartService] addCartProduct', {
     cartId: params.cartId,
     productId: localProduct.id,
-    serverId: serverVersion?.id,
-    upsertMs: t1 - t0,
-    syncMs: t2 - t1,
+    enqueueMs: t1 - t0,
     recalcMs: Date.now() - t2,
     totalMs: Date.now() - t0,
   });
 
   const now = new Date().toISOString();
   return {
-    id: (serverVersion?.id as string) || localProduct.id,
+    id: localProduct.id,
     cartId: params.cartId,
-    productId: (serverVersion?.productId as string) || localProduct.id,
+    productId: localProduct.productId || localProduct.id,
     name: params.name,
     priceBs: params.priceBs,
     priceUsd: params.priceUsd,
@@ -328,21 +322,16 @@ export async function updateCartProduct(
     imageUrl: params.imageUrl || null,
   });
 
-  await syncService.enqueueAndSync(
-    SYNC_TABLES.CART_PRODUCTS,
-    SYNC_ACTIONS.UPDATE,
-    cartProductId,
-    {
-      id: cartProductId,
-      cartId: params.cartId,
-      name: params.name,
-      priceUsd: toCents(params.priceUsd),
-      priceBs: toCents(params.priceBs),
-      quantity: params.quantity,
-      userId,
-    },
-    userId
-  );
+  await syncService.enqueue(SYNC_TABLES.CART_PRODUCTS, SYNC_ACTIONS.UPDATE, cartProductId, {
+    id: cartProductId,
+    cartId: params.cartId,
+    name: params.name,
+    priceUsd: toCents(params.priceUsd),
+    priceBs: toCents(params.priceBs),
+    quantity: params.quantity,
+    userId,
+  });
+  syncService.flushInBackground(userId);
 
   await recalcCartTotals(params.cartId);
 
@@ -369,18 +358,13 @@ export async function updateCartProductQuantity(
 ): Promise<CartProductResponse> {
   await cartProductRepository.updateQuantity(cartProductId, params.quantity);
 
-  await syncService.enqueueAndSync(
-    SYNC_TABLES.CART_PRODUCTS,
-    SYNC_ACTIONS.UPDATE,
-    cartProductId,
-    {
-      id: cartProductId,
-      cartId: params.cartId,
-      quantity: params.quantity,
-      userId,
-    },
-    userId
-  );
+  await syncService.enqueue(SYNC_TABLES.CART_PRODUCTS, SYNC_ACTIONS.UPDATE, cartProductId, {
+    id: cartProductId,
+    cartId: params.cartId,
+    quantity: params.quantity,
+    userId,
+  });
+  syncService.flushInBackground(userId);
 
   await recalcCartTotals(params.cartId);
 
@@ -399,67 +383,46 @@ export async function updateCartProductQuantity(
   };
 }
 
-function transformCartResponse(response: ApiCartResponse): ApiCartResponse {
-  return {
-    ...response,
-    budgetBs: fromCentsNullable(response.budgetBs),
-    budgetUsd: fromCentsNullable(response.budgetUsd),
-    totalEstimatedBs:
-      response.totalEstimatedBs !== null ? fromCents(response.totalEstimatedBs) : null,
-    totalEstimatedUsd:
-      response.totalEstimatedUsd !== null ? fromCents(response.totalEstimatedUsd) : null,
-  };
-}
-
 export async function checkoutCart(cartId: string, userId?: string): Promise<ApiCartResponse> {
-  try {
-    const response = await apiPost<ApiResponse<ApiCartResponse>>(
-      `/carts/${cartId}/checkout`,
-      userId
-    );
-    if (response.success) {
-      await cartRepository.update(cartId, { isActive: false });
-    }
-    return transformCartResponse(response.data);
-  } catch {
-    await cartRepository.update(cartId, { isActive: false });
+  const now = new Date().toISOString();
 
-    await syncService.enqueueAndSync(
-      SYNC_TABLES.CARTS,
-      SYNC_ACTIONS.UPDATE,
-      cartId,
-      { id: cartId, isActive: false, checkout: true, userId },
-      userId
-    );
+  await cartRepository.update(cartId, { isActive: false });
 
-    return {
-      id: cartId,
-      supermarketId: '',
-      supermarketName: '',
-      userId: userId || '',
-      isActive: false,
-      hasBudget: false,
-      budgetBs: 0,
-      budgetUsd: 0,
-      totalEstimatedBs: null,
-      totalEstimatedUsd: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  await syncService.enqueue(SYNC_TABLES.CARTS, SYNC_ACTIONS.UPDATE, cartId, {
+    id: cartId,
+    isActive: false,
+    checkout: true,
+    userId,
+  });
+  syncService.flushInBackground(userId);
+
+  const localCart = await cartRepository.getById(cartId);
+
+  return {
+    id: cartId,
+    supermarketId: localCart?.supermarketId ?? '',
+    supermarketName: localCart?.supermarketName ?? '',
+    userId: userId || '',
+    isActive: false,
+    hasBudget: localCart?.hasBudget ?? false,
+    budgetBs: localCart?.budgetBs ?? 0,
+    budgetUsd: localCart?.budgetUsd ?? 0,
+    totalEstimatedBs: localCart?.totalEstimatedBs ?? null,
+    totalEstimatedUsd: localCart?.totalEstimatedUsd ?? null,
+    createdAt: localCart?.createdAt ?? now,
+    updatedAt: now,
+  };
 }
 
 export async function deleteCartProduct(cartProductId: string, userId?: string): Promise<void> {
   const existing = await cartProductRepository.getById(cartProductId);
   await cartProductRepository.delete(cartProductId);
 
-  await syncService.enqueueAndSync(
-    SYNC_TABLES.CART_PRODUCTS,
-    SYNC_ACTIONS.DELETE,
-    cartProductId,
-    { id: cartProductId, userId },
-    userId
-  );
+  await syncService.enqueue(SYNC_TABLES.CART_PRODUCTS, SYNC_ACTIONS.DELETE, cartProductId, {
+    id: cartProductId,
+    userId,
+  });
+  syncService.flushInBackground(userId);
 
   if (existing) {
     await recalcCartTotals(existing.cartId);
