@@ -22,7 +22,6 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera for OCR scanning.",
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photo library for OCR scanning.",
-        "NSUserTrackingUsageDescription": "Permite a Merki mostrar anuncios mas relevantes usando tu identificador de publicidad.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.merki.app"
@@ -90,15 +89,7 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-1019164072675452~9310060521",
-          "iosAppId": "ca-app-pub-1019164072675452~1291969706",
-          "userTrackingUsageDescription": "Permite a Merki mostrar anuncios mas relevantes usando tu identificador de publicidad.",
-          "delayAppMeasurementInit": true
-        }
-      ],
-      [
-        "expo-tracking-transparency",
-        {
-          "userTrackingUsageDescription": "Permite a Merki mostrar anuncios mas relevantes usando tu identificador de publicidad."
+          "iosAppId": "ca-app-pub-1019164072675452~1291969706"
         }
       ]
     ],

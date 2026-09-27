@@ -20,6 +20,13 @@ locally. Ads render only when `isPremium === false && isResolved === true`
 flash of ads). Interstitial ads additionally bail out inside `show()` so a
 stale loaded ad can never be presented after a user becomes premium.
 
+**iOS:** ads are shown but **non-personalized**. There is no App Tracking
+Transparency prompt and no `NSUserTrackingUsageDescription`; without ATT the
+IDFA is unavailable, so the App Privacy label must **not** mark Device ID as
+"used for tracking" (this resolved App Store Guideline 5.1.2). The premium UI is
+hidden entirely on iOS because there is no In-App Purchase (Guideline 3.1.1 /
+2.1(b)); premium is sold only via web/Android.
+
 ## AdMob Account
 
 - Publisher ID: `ca-app-pub-1019164072675452`
@@ -61,10 +68,10 @@ the var names only.
 - [ ] **Rebuild the native app** (`npx expo prebuild` + rebuild) so the SDK and real App IDs take effect.
 - [ ] **Test ads with the real IDs** on a device (fill, no crashes, premium users see none).
 - [ ] **Google Play Console → Data safety form**: declare "Advertising or marketing" + ad/device IDs; confirm Google Ads ID policy.
-- [ ] **App Store Connect → App Privacy**: declare "Identifiers — Advertising ID / Device ID" for third-party advertising.
+- [ ] **App Store Connect → App Privacy**: declare "Identifiers — Device ID" for third-party advertising, **without** "used for tracking".
 - [ ] **GDPR consent**: implement UMP via the bundled `AdsConsent` module (EEA/UK users).
-- [x] **iOS ATT**: `expo-tracking-transparency` installed + `NSUserTrackingUsageDescription` in `app.json`; the permission is requested on app start before `MobileAds().initialize()` (`mobile/app/_layout.tsx`), with `delayAppMeasurementInit: true` on the AdMob plugin.
-- [x] **iOS premium purchase hidden**: `pago-móvil` is unreachable on iOS (`app/(tabs)/profile.tsx`, `app/(premium)/plans.tsx`) to comply with App Store Guideline 3.1.1 (external payment for a digital good). Re-enable only via In-App Purchase.
+- [x] **iOS no tracking / no ATT**: `expo-tracking-transparency` and `NSUserTrackingUsageDescription` were removed. Without ATT the IDFA is unavailable, so iOS ads are **non-personalized** and App Privacy must **not** mark Device ID as used for tracking (fixes Guideline 5.1.2).
+- [x] **iOS premium UI hidden entirely**: the premium card and the whole `(premium)` stack (`plans`, `pago-movil`, `payment-pending`) are hidden/blocked on iOS (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`) to comply with Guidelines 3.1.1 / 2.1(b) (no In-App Purchase). Premium is sold only via web/Android.
 - [ ] **Privacy policy URL**: `https://somosmerki.app/privacy` exists in the web app; confirm it is live and reference it in both store listings. Link it in-app (e.g., Profile/Settings).
 - [ ] **Publish** on Play Store + App Store, then flip the status at the top of this file to "wired & live".
 

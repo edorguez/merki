@@ -1,7 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { useAppTheme } from '../../styles/theme';
 import { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import * as Network from 'expo-network';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -11,6 +11,11 @@ export default function PremiumLayout() {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
+    // Premium purchase is not offered on iOS (no In-App Purchase).
+    if (Platform.OS === 'ios') {
+      router.replace('/(tabs)/profile');
+      return;
+    }
     Network.getNetworkStateAsync().then(state => {
       const connected = state.isConnected ?? true;
       setIsOnline(connected);
@@ -19,6 +24,10 @@ export default function PremiumLayout() {
       }
     });
   }, [router]);
+
+  if (Platform.OS === 'ios') {
+    return null;
+  }
 
   if (!isOnline) {
     return (

@@ -26,22 +26,12 @@ export default function RootLayout() {
     let cancelled = false;
 
     (async () => {
+      if (cancelled) return;
       try {
-        if (Platform.OS === 'ios') {
-          const { requestTrackingPermissionsAsync } = await import('expo-tracking-transparency');
-          await requestTrackingPermissionsAsync();
-        }
+        const { MobileAds } = await import('react-native-google-mobile-ads');
+        await MobileAds().initialize();
       } catch {
-        // ATT permission is best-effort; the ad SDK still initializes below.
-      } finally {
-        if (!cancelled) {
-          try {
-            const { MobileAds } = await import('react-native-google-mobile-ads');
-            await MobileAds().initialize();
-          } catch {
-            // Ad SDK unavailable in this environment.
-          }
-        }
+        // Ad SDK unavailable in this environment.
       }
     })();
 

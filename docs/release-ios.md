@@ -60,7 +60,7 @@ npx eas submit --platform ios --profile production --latest
 
 ## App Store Connect checklist
 
-- [ ] **App Privacy**: declare `Identifiers → Device ID`, `Contact Info → Email`, `User Content`. Mark **"Used for tracking purposes"** on the advertising data (required because of `NSUserTrackingUsageDescription`).
+- [ ] **App Privacy**: declare `Identifiers → Device ID`, `Contact Info → Email`, `User Content`. Do **not** mark Device ID as "used for tracking" — the iOS app shows **non-personalized** ads (no ATT).
 - [ ] **Copyright**: `2026 Merki`.
 - [ ] **Keywords** (Spanish Mexico): e.g. `precios, supermercado, carrito, bolívares, dólar, BCV, presupuesto, compras`.
 - [ ] **Screenshots**: 6.9" and 6.5" (iPhone).
@@ -132,5 +132,6 @@ To find the Apple **Team ID**: `developer.apple.com` → **Account** → **Membe
 | `Authentication with Apple Developer Portal failed! iTunes service key is empty` | Cannot log in with Apple ID (federated account or numeric Apple ID). Use the ASC API Key with `EXPO_ASC_*` + `EXPO_APPLE_TEAM_ID`/`EXPO_APPLE_TEAM_TYPE` on `eas build`. |
 | `Something went wrong when submitting...` with the binary already uploaded | That build was already uploaded (`binary already uploaded`). **Do not resubmit the same build**; create a new one with `make mobile-ios-release`. |
 | `Invalid App Store Icon ... can't contain an alpha channel` | Flatten `icon.png` (no transparency) and rebuild. |
-| `NSUserTrackingUsageDescription` blocks review | Mark the advertising data as **tracking** in App Privacy. |
+| Guideline 5.1.2 — tracking declared without ATT | The app no longer tracks on iOS (no `expo-tracking-transparency`, no `NSUserTrackingUsageDescription`). In App Privacy, remove "used for tracking" from Device ID. Ads remain **non-personalized**. |
+| Guideline 2.1(b) — IAP products not submitted | The iOS app sells no digital content. Premium UI is hidden entirely on iOS (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`); no IAP is configured. |
 | `make: You have not agreed to the Xcode license agreements` | Run once: `sudo xcodebuild -license accept`. |

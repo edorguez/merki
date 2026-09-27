@@ -127,7 +127,7 @@ export default function ProfileTab() {
           <FadeIn delay={120} distance={12}>
             {user?.isAnonymous ? (
               <AnonymousPromptCard onLoginPress={handleCreateAccount} />
-            ) : isPremium ? (
+            ) : Platform.OS === 'ios' ? null : isPremium ? (
               <PremiumActiveCard premiumUntil={user?.premiumUntil} onUpgradePress={handleUpgrade} />
             ) : (
               <PremiumCard onUpgradePress={handleUpgrade} />
