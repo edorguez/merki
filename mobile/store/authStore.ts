@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useSession, signOut } from '../lib/auth-client';
 import { apiGet, clearSessionTokenCache } from '../services/api';
 import { deleteAccount as deleteAccountRequest } from '../services/accountService';
@@ -119,6 +120,13 @@ export function useAuth() {
 // is false while the premium status is still loading — ads must not render then.
 export function useIsPremium(): { isPremium: boolean; isResolved: boolean } {
   const { user, premiumResolved } = useAuth();
+
+  // iOS: premium is not part of the iOS app (no In-App Purchase), so the
+  // entitlement is never applied here and ads always render. Premium is only
+  // active on Android/web. See docs/ads.md.
+  if (Platform.OS === 'ios') {
+    return { isPremium: false, isResolved: true };
+  }
 
   let isPremium = user?.isPremium === true;
   if (isPremium && user?.premiumUntil) {

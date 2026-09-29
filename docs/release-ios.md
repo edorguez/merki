@@ -133,5 +133,5 @@ To find the Apple **Team ID**: `developer.apple.com` → **Account** → **Membe
 | `Something went wrong when submitting...` with the binary already uploaded | That build was already uploaded (`binary already uploaded`). **Do not resubmit the same build**; create a new one with `make mobile-ios-release`. |
 | `Invalid App Store Icon ... can't contain an alpha channel` | Flatten `icon.png` (no transparency) and rebuild. |
 | Guideline 5.1.2 — tracking declared without ATT | The app no longer tracks on iOS (no `expo-tracking-transparency`, no `NSUserTrackingUsageDescription`). In App Privacy, remove "used for tracking" from Device ID. Ads remain **non-personalized**. |
-| Guideline 2.1(b) — IAP products not submitted | The iOS app sells no digital content. Premium UI is hidden entirely on iOS (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`); no IAP is configured. |
+| Guideline 2.1(b) / 3.1.1 / 3.1.3(b) — IAP / paid content | The iOS app sells no digital content and does not apply premium. `useIsPremium()` returns false on iOS, premium UI is hidden (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`), and no IAP is configured. Premium is Android/web only. |
 | `make: You have not agreed to the Xcode license agreements` | Run once: `sudo xcodebuild -license accept`. |

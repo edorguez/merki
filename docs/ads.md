@@ -23,9 +23,11 @@ stale loaded ad can never be presented after a user becomes premium.
 **iOS:** ads are shown but **non-personalized**. There is no App Tracking
 Transparency prompt and no `NSUserTrackingUsageDescription`; without ATT the
 IDFA is unavailable, so the App Privacy label must **not** mark Device ID as
-"used for tracking" (this resolved App Store Guideline 5.1.2). The premium UI is
-hidden entirely on iOS because there is no In-App Purchase (Guideline 3.1.1 /
-2.1(b)); premium is sold only via web/Android.
+"used for tracking" (this resolved App Store Guideline 5.1.2). The iOS app also
+**does not apply the premium entitlement at all** (`useIsPremium()` returns
+false on iOS), so ads always render on iOS and no externally purchased content
+is accessed (Guideline 3.1.1 / 3.1.3(b)). Premium is Android/web only; purchase
+and entitlement logic are untouched on those platforms.
 
 ## AdMob Account
 
@@ -71,7 +73,7 @@ the var names only.
 - [ ] **App Store Connect → App Privacy**: declare "Identifiers — Device ID" for third-party advertising, **without** "used for tracking".
 - [ ] **GDPR consent**: implement UMP via the bundled `AdsConsent` module (EEA/UK users).
 - [x] **iOS no tracking / no ATT**: `expo-tracking-transparency` and `NSUserTrackingUsageDescription` were removed. Without ATT the IDFA is unavailable, so iOS ads are **non-personalized** and App Privacy must **not** mark Device ID as used for tracking (fixes Guideline 5.1.2).
-- [x] **iOS premium UI hidden entirely**: the premium card and the whole `(premium)` stack (`plans`, `pago-movil`, `payment-pending`) are hidden/blocked on iOS (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`) to comply with Guidelines 3.1.1 / 2.1(b) (no In-App Purchase). Premium is sold only via web/Android.
+- [x] **iOS no premium / no IAP**: the premium entitlement is not applied on iOS (`useIsPremium()` returns false on iOS), the premium UI is hidden (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`), and the iOS app sells no digital content. This keeps the app compliant with Guidelines 3.1.1 / 3.1.3(b) / 2.1(b) without In-App Purchase. Premium is Android/web only.
 - [ ] **Privacy policy URL**: `https://somosmerki.app/privacy` exists in the web app; confirm it is live and reference it in both store listings. Link it in-app (e.g., Profile/Settings).
 - [ ] **Publish** on Play Store + App Store, then flip the status at the top of this file to "wired & live".
 

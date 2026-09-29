@@ -5,6 +5,7 @@ import {
   Pressable,
   Modal,
   ActivityIndicator,
+  Platform,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
@@ -105,7 +106,10 @@ const stylesheet = StyleSheet.create(theme => ({
 
 const WARNINGS = [
   'Tu cuenta y todos tus datos personales se eliminarán de forma permanente.',
-  'Perderás tu suscripción Premium y su historial.',
+  // Premium is not part of the iOS app (no In-App Purchase).
+  ...(Platform.OS === 'ios'
+    ? ['Perderás tu historial y todos tus datos.']
+    : ['Perderás tu suscripción Premium y su historial.']),
   'Esta acción es irreversible y no podrás recuperar tu cuenta.',
 ];
 

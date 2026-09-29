@@ -73,8 +73,8 @@ export default function ProfileTab() {
   };
 
   const handleUpgrade = async () => {
+    // Premium is not part of the iOS app (no In-App Purchase).
     if (Platform.OS === 'ios') {
-      setToast('La compra de Premium estará disponible próximamente en iOS');
       return;
     }
     if (!isOnline) {

@@ -75,6 +75,58 @@ Per-app:
 - Auth server: `cd auth-server && npm run dev` (`:3001`) · `npm run build`
 - Promote a role: `cd auth-server && npx tsx scripts/set-role.ts <email> <role>`
 
+## Architecture map
+
+<!-- Added by ECC codebase-onboarding (2026-09-28). Everything above is
+     unchanged; this section only adds concrete paths, flows, and conventions. -->
+
+### Layout
+
+| Path | Purpose |
+| --- | --- |
+| `cmd/server/main.go` | Go entry point: config → Postgres/Redis → repos → services → routes; starts the BCV cron. |
+| `internal/server/routes.go` | Single Gin route table for all `/api/v1` endpoints. |
+| `internal/server/handlers/` | Thin HTTP handlers, one per domain. |
+| `internal/server/services/` | Business logic (`auth`, `cart`, `sync`, `payment`, `bcv_rate`). |
+| `internal/server/repository/` | All GORM queries. |
+| `internal/server/models/`, `.../dto/` | Persistence models; DTOs + `validator.go`. |
+| `internal/server/middleware/` | `auth.go` (session) and `internal_auth.go` (shared secret + admin role). |
+| `internal/cron/bcv_rate_cron.go` | Periodic BCV rate refresh. |
+| `pkg/database/migrations/001_create_tables.{up,down}.sql` | Full schema (single golang-migrate pair). |
+| `pkg/{logger,middleware,session,core/errors,constants,utils}/` | Shared Go libs. |
+| `auth-server/src/{server.ts,auth-config.ts}` | Hono + better-auth; `/api/auth/*` proxy plus `validate-session`, `update-premium`, `delete-account`. |
+| `mobile/app/` | Expo Router groups: `(tabs)`, `(cart)`, `(onboarding)`, `(premium)`. |
+| `mobile/lib/local/` | SQLite (`database.ts`), `syncQueue.ts`, local `repositories/`. |
+| `mobile/{store,services,components,styles}/` | Zustand stores; API clients; UI; design tokens. |
+| `web/src/{App.tsx,main.tsx,components/admin/,lib/}` | Landing + admin SPA; API/auth clients in `lib/`. |
+| `configs/server/config.go` | Env-based Go config. |
+
+### Backend request lifecycle
+
+`main.go` builds repos → services and calls `server.SetupRoutes`. Requests pass
+Gin middleware (logging, CORS, rate limit 100/200) → `AuthMiddleware` (validates
+the better-auth session and injects the user) → handler → service → repository →
+PostgreSQL. Admin routes add `AdminRoleMiddleware`; `/auth/internal/*` uses
+`InternalAuthMiddleware` (shared secret). Offline mobile mutations replay through
+`POST /api/v1/sync` → `sync_service.go`.
+
+### Where to look
+
+| I want to… | Look at |
+| --- | --- |
+| Add/route an endpoint | `internal/server/routes.go` → `handlers/` → `services/` → `repository/` |
+| Change the schema | `pkg/database/migrations/001_create_tables.up.sql` (+ `.down.sql`) → `internal/server/models/` |
+| Touch auth/session | `auth-server/src/`, `internal/server/middleware/auth.go` |
+| Offline sync | `mobile/lib/local/`, `mobile/services/syncService.ts`, `internal/server/services/sync_service.go` |
+| Admin UI / API client | `web/src/components/admin/`, `web/src/lib/api.ts` |
+
+### Conventions
+
+- Go module `github.com/edorguez/merki` (Go 1.25); Gin + GORM. GORM only in `repository/`.
+- Go tests sit beside sources as `*_test.go` (`make test`, `make test-race`).
+- Mobile routes are Expo Router folders; styling via `mobile/styles/` tokens only.
+- Commit history is short, imperative, and mixed EN/ES (`fix …`, `add …`, `crear …`); no enforced convention detected.
+
 ## Where to read for depth
 
 Load these only when the task needs them — they are large.
@@ -86,6 +138,8 @@ Load these only when the task needs them — they are large.
 - `docs/openapi.yaml` — API contract (**outdated**; prefer handlers).
 - `docs/ads.md` — AdMob integration status (free tier).
 - `docs/release-android.md`, `docs/release-ios.md` — release runbooks.
+- `docs/opencode-ecc-workflow.md` — how to work here with OpenCode + ECC
+  (Plan → Build → Verify flow, command/agent cheat sheet).
 
 ## Skills routing
 

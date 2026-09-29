@@ -1,4 +1,4 @@
-import { View, Text, type ViewStyle, type TextStyle } from 'react-native';
+import { View, Text, Platform, type ViewStyle, type TextStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { StyleSheet } from '../../styles/createStyleSheet';
 import { useAppTheme } from '../../styles/theme';
@@ -74,7 +74,11 @@ const stylesheet = StyleSheet.create(theme => {
   };
 });
 
-const benefits = ['Sincroniza tu historial entre dispositivos', 'Accede a funciones Premium'];
+const benefits = [
+  'Sincroniza tu historial entre dispositivos',
+  // Premium is not part of the iOS app (no In-App Purchase).
+  ...(Platform.OS === 'ios' ? [] : ['Accede a funciones Premium']),
+];
 
 export function AnonymousPromptCard({ onLoginPress }: AnonymousPromptCardProps) {
   const theme = useAppTheme();
