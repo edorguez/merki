@@ -5,9 +5,13 @@
 
 ## Status
 
-**The app is NOT yet deployed on Android or iOS.** Ads are wired into the code
-(`mobile/lib/ads.ts`, ad components, premium gating), but no ad is live until
-the app is rebuilt with the native module and published.
+**The app is deployed.** iOS is live (build #10) and Android is awaiting Google
+Play approval. Ads are wired into the code with real App IDs and ad-unit IDs
+(`mobile/lib/ads.ts`, `mobile/app.json`, ad components, premium gating). Ads are
+**not yet serving** because the AdMob account is still pending approval and the
+app must be verified via `app-ads.txt` (now published at the site root — see
+below). No mobile rebuild is needed for ad serving; both tasks are AdMob-console
+side.
 
 **Plan model:** Free users see ads; premium users see **no ads**. See
 `PROJECT_SPEC.md` §7.5 (Plans & Monetization).
@@ -32,8 +36,22 @@ and entitlement logic are untouched on those platforms.
 ## AdMob Account
 
 - Publisher ID: `ca-app-pub-1019164072675452`
+- Google/AdMob account: `edro998@gmail.com`. Apple Developer account:
+  `admin@somosmerki.com` (different accounts, same `somosmerki.app` domain).
 - Payment: US EFT → Bank of America (minimum $100). See the "Before release"
   checklist below.
+
+## app-ads.txt
+
+AdMob verifies app ownership by crawling `app-ads.txt` at the root of the
+developer website listed on the store listing (`https://somosmerki.app`, set as
+the marketing URL). This is **domain-based, not account-based**, so the separate
+Apple Developer account does not block verification.
+
+- File: `web/public/app-ads.txt` → served at `https://somosmerki.app/app-ads.txt`
+  (Caddy `try_files` serves the real file before the SPA fallback).
+- Content: `google.com, pub-1019164072675452, DIRECT, f08c47fec0942fa0`
+- After deploy, click **"Comprobar actualizaciones"** on each app in AdMob.
 
 ## App IDs (in `mobile/app.json` → `react-native-google-mobile-ads` plugin)
 
@@ -67,7 +85,9 @@ the var names only.
 
 ## TODO — before / at launch
 
-- [ ] **Rebuild the native app** (`npx expo prebuild` + rebuild) so the SDK and real App IDs take effect.
+- [x] **Native app built with the SDK + real IDs**: iOS build #10 (live) and Android build #3 (awaiting Play approval) both embed the SDK and real App IDs.
+- [x] **app-ads.txt published**: `web/public/app-ads.txt` → `https://somosmerki.app/app-ads.txt`, then "Comprobar actualizaciones" in AdMob.
+- [ ] **AdMob account approval** (AdMob console, 2/4): pending review — blocks all ad serving. Wait, then link each app to its store listing.
 - [ ] **Test ads with the real IDs** on a device (fill, no crashes, premium users see none).
 - [ ] **Google Play Console → Data safety form**: declare "Advertising or marketing" + ad/device IDs; confirm Google Ads ID policy.
 - [ ] **App Store Connect → App Privacy**: declare "Identifiers — Device ID" for third-party advertising, **without** "used for tracking".
@@ -75,7 +95,8 @@ the var names only.
 - [x] **iOS no tracking / no ATT**: `expo-tracking-transparency` and `NSUserTrackingUsageDescription` were removed. Without ATT the IDFA is unavailable, so iOS ads are **non-personalized** and App Privacy must **not** mark Device ID as used for tracking (fixes Guideline 5.1.2).
 - [x] **iOS no premium / no IAP**: the premium entitlement is not applied on iOS (`useIsPremium()` returns false on iOS), the premium UI is hidden (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`), and the iOS app sells no digital content. This keeps the app compliant with Guidelines 3.1.1 / 3.1.3(b) / 2.1(b) without In-App Purchase. Premium is Android/web only.
 - [ ] **Privacy policy URL**: `https://somosmerki.app/privacy` exists in the web app; confirm it is live and reference it in both store listings. Link it in-app (e.g., Profile/Settings).
-- [ ] **Publish** on Play Store + App Store, then flip the status at the top of this file to "wired & live".
+- [x] **iOS published** (build #10). Android built (versionCode 3) and submitted — awaiting Google Play approval.
+- [ ] **Go live**: once the AdMob account is approved and impressions are confirmed, flip the status at the top of this file to "wired & live".
 
 ## Not a secret
 
