@@ -1,17 +1,17 @@
 # Ads & Monetization Status
 
-> Living checklist. Track the AdMob integration state here so nothing is
-> forgotten between now and launch.
+> Living checklist. Tracks the **Unity Ads** integration (free tier) so nothing
+> is forgotten between releases.
 
 ## Status
 
-**The app is deployed.** iOS is live (build #10) and Android is awaiting Google
-Play approval. Ads are wired into the code with real App IDs and ad-unit IDs
-(`mobile/lib/ads.ts`, `mobile/app.json`, ad components, premium gating). Ads are
-**not yet serving** because the AdMob account is still pending approval and the
-app must be verified via `app-ads.txt` (now published at the site root — see
-below). No mobile rebuild is needed for ad serving; both tasks are AdMob-console
-side.
+**The app is deployed** (iOS + Android live). Ads are wired into the code with
+real Unity Ads identifiers and gated by the premium entitlement. The native SDK
+is a **local Expo module** at `mobile/modules/unity-ads` (Android Kotlin + iOS
+Swift), consumed through `mobile/lib/unityAds.ts`.
+
+Ads start serving in the next production build. The ad SDK was migrated to Unity
+Ads; no identifiers from the previous provider remain in the repo.
 
 **Plan model:** Free users see ads; premium users see **no ads**. See
 `PROJECT_SPEC.md` §7.5 (Plans & Monetization).
@@ -21,85 +21,105 @@ premium status via `User.IsActivePremium()` (flag **and** `premiumUntil` still i
 the future), and the client's `useIsPremium()` hook re-checks `premiumUntil`
 locally. Ads render only when `isPremium === false && isResolved === true`
 (`isResolved` is false while premium status loads, so premium users never get a
-flash of ads). Interstitial ads additionally bail out inside `show()` so a
-stale loaded ad can never be presented after a user becomes premium.
+flash of ads). The interstitial hook also bails out inside `show()` so a stale
+loaded ad can never be presented after a user becomes premium.
 
-**iOS:** ads are shown but **non-personalized**. There is no App Tracking
-Transparency prompt and no `NSUserTrackingUsageDescription`; without ATT the
-IDFA is unavailable, so the App Privacy label must **not** mark Device ID as
-"used for tracking" (this resolved App Store Guideline 5.1.2). The iOS app also
-**does not apply the premium entitlement at all** (`useIsPremium()` returns
-false on iOS), so ads always render on iOS and no externally purchased content
-is accessed (Guideline 3.1.1 / 3.1.3(b)). Premium is Android/web only; purchase
-and entitlement logic are untouched on those platforms.
+**iOS:** ads are **non-personalized**. There is no App Tracking Transparency
+prompt and no `NSUserTrackingUsageDescription`; without ATT the IDFA is
+unavailable, so the App Privacy label must **not** mark Device ID as "used for
+tracking" (Guideline 5.1.2). The iOS app also **does not apply the premium
+entitlement at all** (`useIsPremium()` returns false on iOS), so ads always
+render on iOS and no externally purchased content is accessed (Guideline 3.1.1 /
+3.1.3(b)). Premium is Android/web only.
 
-## AdMob Account
+## Unity Ads account
 
-- Publisher ID: `ca-app-pub-1019164072675452`
-- Google/AdMob account: `edro998@gmail.com`. Apple Developer account:
-  `admin@somosmerki.com` (different accounts, same `somosmerki.app` domain).
-- Payment: US EFT → Bank of America (minimum $100). See the "Before release"
-  checklist below.
+- Product: **Unity Ads** (Monetization), not ironSource LevelPlay.
+- Organization: `adminmvtqid7c` · Organization core ID `4674276041554`
+- Country of residence: Venezuela (matches the payout/KYC documents).
+- Developer website: `https://somosmerki.app` (used for `app-ads.txt` crawling).
+- Payouts: complete the **Payments** section (W-8BEN + wire to Banesco Panamá or
+  the US bank account) before the first payout cycle.
 
-## app-ads.txt
+## Game IDs (in `mobile/lib/ads.ts`, overridable via env vars)
 
-AdMob verifies app ownership by crawling `app-ads.txt` at the root of the
-developer website listed on the store listing (`https://somosmerki.app`, set as
-the marketing URL). This is **domain-based, not account-based**, so the separate
-Apple Developer account does not block verification.
+| Platform | Game ID |
+|----------|---------|
+| Android  | `800417099` |
+| iOS      | `800417100` |
 
-- File: `web/public/app-ads.txt` → served at `https://somosmerki.app/app-ads.txt`
-  (Caddy `try_files` serves the real file before the SPA fallback).
-- Content: `google.com, pub-1019164072675452, DIRECT, f08c47fec0942fa0`
-- After deploy, click **"Comprobar actualizaciones"** on each app in AdMob.
+Env overrides: `EXPO_PUBLIC_UNITY_GAME_ID_{ANDROID,IOS}`.
 
-## App IDs (in `mobile/app.json` → `react-native-google-mobile-ads` plugin)
+## Placements (Unity dashboard — all Active)
 
-| Platform | App ID |
-|----------|--------|
-| Android  | `ca-app-pub-1019164072675452~9310060521` |
-| iOS      | `ca-app-pub-1019164072675452~1291969706` |
+| Placement | ID | App | Format |
+|-----------|----|-----|--------|
+| Banner Android | `BP_Banner_Android` | Merki Android | Banner |
+| Interstitial Android | `BP_Interstitial_Android` | Merki Android | Interstitial |
+| Banner iOS | `BP_Banner_IOS` | Merki iOS | Banner |
+| Interstitial iOS | `BP_Interstitial_IOS` | Merki iOS | Interstitial |
 
-## Ad Unit IDs (defaults in `mobile/lib/ads.ts`, overridable via `EXPO_PUBLIC_ADMOB_*` env vars)
-
-| Format | Android | iOS |
-|--------|---------|-----|
-| Banner  | `ca-app-pub-1019164072675452/8264572161` | `ca-app-pub-1019164072675452/7861247486` |
-| Interstitial | `ca-app-pub-1019164072675452/3283708227` | `ca-app-pub-1019164072675452/8152891524` |
-| Native advanced | `ca-app-pub-1019164072675452/5422786408` | `ca-app-pub-1019164072675452/5235084148` |
-
-Env vars: `EXPO_PUBLIC_ADMOB_{BANNER,INTERSTITIAL,NATIVE}_ID_{ANDROID,IOS}`.
-Real values are also set in `mobile/.env` (gitignored). `.env.example` documents
-the var names only.
+Env overrides: `EXPO_PUBLIC_UNITY_{BANNER,INTERSTITIAL}_PLACEMENT_{ANDROID,IOS}`.
 
 ## Ad placements (premium-gated — render only when `user.isPremium === false`)
 
 | Placement | Format | Location |
 |-----------|--------|----------|
-| Home in-feed | Native advanced | `app/(tabs)/index.tsx` (`AdNative`) |
-| History in-feed | Native advanced | `app/(tabs)/history.tsx` (`AdNative`) |
-| Profile | Banner | `app/(tabs)/profile.tsx` (`AdBanner`) |
+| Home in-feed | MREC 300x250 (banner placement) | `app/(tabs)/index.tsx` (`AdMrec`) |
+| History in-feed | MREC 300x250 (banner placement) | `app/(tabs)/history.tsx` (`AdMrec`) |
+| Profile | Banner 320x50 | `app/(tabs)/profile.tsx` (`AdBanner`) |
 | After checkout | Interstitial | `app/(cart)/[id].tsx` (`useInterstitialAd`) |
-| Cart detail | Banner | `app/(cart)/[id].tsx` (`AdBanner`) |
+| Cart detail | Banner 320x50 | `app/(cart)/[id].tsx` (`AdBanner`) |
 | Every 10 scans | Interstitial | `app/(cart)/scan.tsx` (`useInterstitialAd`) |
+
+Unity Ads has **no native ad format**; the two feed slots use MREC
+(`adSize="mrec"` → `UnityBannerSize.iabStandard` / 300x250).
+
+## app-ads.txt
+
+Unity crawls `app-ads.txt` at the root of the developer website listed on the
+store listings and in the Unity organization settings.
+
+- File: `web/public/app-ads.txt` → served at `https://somosmerki.app/app-ads.txt`
+  (Caddy `try_files` serves the real file before the SPA fallback).
+- Content: the **full Unity-provided list** (all `RESELLER` entries plus
+  `unity.com, 159982081, DIRECT, 96cabb5fbdde37a7`).
+- After deploying, Unity re-checks automatically (24–48 h). **Review monthly**
+  and re-sync when Unity adds entries.
+
+## SKAdNetwork
+
+`mobile/app.json` → `expo.ios.infoPlist.SKAdNetworkItems` contains the full list
+from the Unity dashboard (~78 identifiers). It is injected into `Info.plist` at
+EAS prebuild. **Review monthly** as Unity requests.
+
+## Testing
+
+- Dev builds (`__DEV__`) initialize the SDK with `testMode = true`.
+- Production builds serve real ads — never click your own live ads.
+- The native module exposes `loadInterstitial` / `showInterstitial`; banners load
+  automatically when mounted.
 
 ## TODO — before / at launch
 
-- [x] **Native app built with the SDK + real IDs**: iOS build #10 (live) and Android build #3 (awaiting Play approval) both embed the SDK and real App IDs.
-- [x] **app-ads.txt published**: `web/public/app-ads.txt` → `https://somosmerki.app/app-ads.txt`, then "Comprobar actualizaciones" in AdMob.
-- [ ] **AdMob account approval** (AdMob console, 2/4): pending review — blocks all ad serving. Wait, then link each app to its store listing.
-- [ ] **Test ads with the real IDs** on a device (fill, no crashes, premium users see none).
-- [ ] **Google Play Console → Data safety form**: declare "Advertising or marketing" + ad/device IDs; confirm Google Ads ID policy.
-- [ ] **App Store Connect → App Privacy**: declare "Identifiers — Device ID" for third-party advertising, **without** "used for tracking".
-- [ ] **GDPR consent**: implement UMP via the bundled `AdsConsent` module (EEA/UK users).
-- [x] **iOS no tracking / no ATT**: `expo-tracking-transparency` and `NSUserTrackingUsageDescription` were removed. Without ATT the IDFA is unavailable, so iOS ads are **non-personalized** and App Privacy must **not** mark Device ID as used for tracking (fixes Guideline 5.1.2).
-- [x] **iOS no premium / no IAP**: the premium entitlement is not applied on iOS (`useIsPremium()` returns false on iOS), the premium UI is hidden (`app/(tabs)/profile.tsx`, `app/(premium)/_layout.tsx`), and the iOS app sells no digital content. This keeps the app compliant with Guidelines 3.1.1 / 3.1.3(b) / 2.1(b) without In-App Purchase. Premium is Android/web only.
-- [ ] **Privacy policy URL**: `https://somosmerki.app/privacy` exists in the web app; confirm it is live and reference it in both store listings. Link it in-app (e.g., Profile/Settings).
-- [x] **iOS published** (build #10). Android built (versionCode 3) and submitted — awaiting Google Play approval.
-- [ ] **Go live**: once the AdMob account is approved and impressions are confirmed, flip the status at the top of this file to "wired & live".
+- [x] **Provider migration**: dependency, config plugin, IDs, web stub, aliases,
+      docs and privacy copy now use Unity Ads.
+- [x] **Unity Ads apps + placements created** (Game IDs above, 4 placements).
+- [ ] **app-ads.txt updated + deployed** (`web/public/app-ads.txt` → deploy web).
+- [ ] **SKAdNetworkItems** included in the next iOS build (already in `app.json`).
+- [ ] **Unity Payments / W-8BEN** completed in the dashboard.
+- [ ] **Build + submit** Android (AAB) and iOS with the new native module.
+- [ ] **Test**: banner on profile/cart, MREC on home/history, interstitial after
+      checkout and every 10 scans; premium users see none.
+- [ ] **Google Play Console → Data safety**: declare "Advertising or marketing" +
+      ad/device IDs (partner: Unity Ads).
+- [ ] **App Store Connect → App Privacy**: Device ID for third-party advertising,
+      **without** "used for tracking".
+- [ ] **Privacy policy URL**: `https://somosmerki.app/privacy` live and linked in
+      both store listings (and in-app).
 
 ## Not a secret
 
-AdMob App IDs and ad-unit IDs are **public by design** — they're embedded in the
-app binary. Only AdMob account credentials, API/OAuth tokens, and bank/payment
+Game IDs and placement IDs are **public by design** — they are embedded in the
+app binary. Only Unity account credentials, API/OAuth tokens, and bank/payment
 details must be kept secret.

@@ -1,9 +1,21 @@
-import { useCallback } from 'react'
-import { appStoreUrls, ctaContent } from '../../constants/home/content'
+import { useCallback, type MouseEvent } from 'react'
+import { appStoreDeepLinks, appStoreUrls, ctaContent } from '../../constants/home/content'
 import styles from './DownloadButtons.module.scss'
 
 interface DownloadButtonsProps {
   className?: string
+}
+
+type Store = 'ios' | 'android'
+
+function detectPlatform(): Store | 'desktop' {
+  if (typeof navigator === 'undefined') return 'desktop'
+  const ua = navigator.userAgent
+  if (/android/i.test(ua)) return 'android'
+  if (/iphone|ipod/i.test(ua)) return 'ios'
+  // iPadOS 13+ reports a desktop Safari user agent.
+  if (/ipad/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1)) return 'ios'
+  return 'desktop'
 }
 
 function AppleIcon() {
@@ -23,23 +35,40 @@ function GooglePlayIcon() {
 }
 
 export function DownloadButtons({ className = '' }: DownloadButtonsProps) {
-  const handleClick = useCallback((store: 'ios' | 'android') => {
-    const btn = document.activeElement as HTMLElement | null
-    btn?.classList.add(styles.ripple)
-    setTimeout(() => btn?.classList.remove(styles.ripple), 600)
-    window.open(appStoreUrls[store], '_blank')
+  const handleClick = useCallback((event: MouseEvent<HTMLAnchorElement>, store: Store) => {
+    const link = event.currentTarget
+    link.classList.add(styles.ripple)
+    setTimeout(() => link.classList.remove(styles.ripple), 600)
+
+    // On the matching mobile platform, open the native store app instead of the web page.
+    if (detectPlatform() === store) {
+      event.preventDefault()
+      window.location.href = appStoreDeepLinks[store]
+    }
   }, [])
 
   return (
     <div className={`${styles.wrapper} ${className}`}>
-      <button className={styles.btn} onClick={() => handleClick('ios')}>
+      <a
+        className={styles.btn}
+        href={appStoreUrls.ios}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={event => handleClick(event, 'ios')}
+      >
         <AppleIcon />
         {ctaContent.iosLabel}
-      </button>
-      <button className={styles.btn} onClick={() => handleClick('android')}>
+      </a>
+      <a
+        className={styles.btn}
+        href={appStoreUrls.android}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={event => handleClick(event, 'android')}
+      >
         <GooglePlayIcon />
         {ctaContent.androidLabel}
-      </button>
+      </a>
     </div>
   )
 }

@@ -49,10 +49,6 @@ module.exports = async function (env, argv) {
     'node_modules/nanoid/non-secure/index.cjs'
   );
 
-  // Ads SDK is native-only; use the no-op web stub so web bundles don't pull in
-  // the native `codegenNativeComponent` internal.
-  config.resolve.alias['react-native-google-mobile-ads'] = path.resolve(__dirname, 'ads.web.ts');
-
   // Modify css-loader options to set esModule: false (prevents import.meta.url)
   config.module = config.module || {};
   config.module.rules = config.module.rules || [];

@@ -136,7 +136,7 @@ Load these only when the task needs them — they are large.
 - `DESIGN.md` — design tokens, color usage audit, typography, component specs.
   Read before any UI/styling work in `mobile/` or `web/`.
 - `docs/openapi.yaml` — API contract (**outdated**; prefer handlers).
-- `docs/ads.md` — AdMob integration status (free tier).
+- `docs/ads.md` — Unity Ads integration status (free tier).
 - `docs/release-android.md`, `docs/release-ios.md` — release runbooks.
 - `docs/opencode-ecc-workflow.md` — how to work here with OpenCode + ECC
   (Plan → Build → Verify flow, command/agent cheat sheet).

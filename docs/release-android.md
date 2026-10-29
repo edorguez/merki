@@ -83,7 +83,7 @@ Current track: **Closed / Internal testing**.
 
 ## Play Console checklist
 
-- [ ] **Data safety**: declare *App activity / Device or other IDs* and "Advertising or marketing" (AdMob). Confirm the Google Ads ID policy.
+- [ ] **Data safety**: declare *App activity / Device or other IDs* and "Advertising or marketing" (Unity Ads). Confirm the advertising ID policy.
 - [ ] **Content rating** questionnaire: declare that the app **contains ads**.
 - [ ] **Target audience and content**: set the age groups.
 - [ ] **Privacy policy URL**: `https://somosmerki.app/privacy`.
@@ -101,4 +101,4 @@ Current track: **Closed / Internal testing**.
 | `Target API level` requirement | Update `expo-build-properties` (currently `compileSdkVersion: 36`) and rebuild. |
 | `.aab` not accepted as the first upload | The very first release must be created manually in the Play Console. |
 | `make: You have not agreed to the Xcode license agreements` | Run once: `sudo xcodebuild -license accept`. |
-| Real ads shown while testing | Add your device in `AdMob → your app → Test devices` to receive test ads. |
+| Real ads shown while testing | Dev builds run Unity Ads in test mode (`__DEV__`); production builds always serve real ads. |

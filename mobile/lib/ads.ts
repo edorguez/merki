@@ -1,25 +1,40 @@
 import { Platform } from 'react-native';
-import { TestIds } from 'react-native-google-mobile-ads';
 
 const env = (key: string): string | undefined => process.env[key];
 
-function resolveAdUnit(testId: string, real: { android: string; ios: string }): string {
-  if (__DEV__) return testId;
-  return Platform.select(real) ?? real.android;
+function pick(
+  android: string | undefined,
+  ios: string | undefined,
+  androidFallback: string,
+  iosFallback: string
+) {
+  return (
+    Platform.select({
+      android: android ?? androidFallback,
+      ios: ios ?? iosFallback,
+    }) ?? androidFallback
+  );
 }
 
-export const BANNER_AD_UNIT_ID = resolveAdUnit(TestIds.BANNER, {
-  android: env('EXPO_PUBLIC_ADMOB_BANNER_ID_ANDROID') ?? 'ca-app-pub-1019164072675452/8264572161',
-  ios: env('EXPO_PUBLIC_ADMOB_BANNER_ID_IOS') ?? 'ca-app-pub-1019164072675452/7861247486',
-});
+/** Unity Ads Game ID (Monetization → Apps → app settings). */
+export const UNITY_GAME_ID = pick(
+  env('EXPO_PUBLIC_UNITY_GAME_ID_ANDROID'),
+  env('EXPO_PUBLIC_UNITY_GAME_ID_IOS'),
+  '800417099',
+  '800417100'
+);
 
-export const INTERSTITIAL_AD_UNIT_ID = resolveAdUnit(TestIds.INTERSTITIAL, {
-  android:
-    env('EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID_ANDROID') ?? 'ca-app-pub-1019164072675452/3283708227',
-  ios: env('EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID_IOS') ?? 'ca-app-pub-1019164072675452/8152891524',
-});
+/** Banner placement, also used for the 300x250 MREC in the feeds. */
+export const BANNER_PLACEMENT_ID = pick(
+  env('EXPO_PUBLIC_UNITY_BANNER_PLACEMENT_ANDROID'),
+  env('EXPO_PUBLIC_UNITY_BANNER_PLACEMENT_IOS'),
+  'BP_Banner_Android',
+  'BP_Banner_IOS'
+);
 
-export const NATIVE_AD_UNIT_ID = resolveAdUnit(TestIds.NATIVE, {
-  android: env('EXPO_PUBLIC_ADMOB_NATIVE_ID_ANDROID') ?? 'ca-app-pub-1019164072675452/5422786408',
-  ios: env('EXPO_PUBLIC_ADMOB_NATIVE_ID_IOS') ?? 'ca-app-pub-1019164072675452/5235084148',
-});
+export const INTERSTITIAL_PLACEMENT_ID = pick(
+  env('EXPO_PUBLIC_UNITY_INTERSTITIAL_PLACEMENT_ANDROID'),
+  env('EXPO_PUBLIC_UNITY_INTERSTITIAL_PLACEMENT_IOS'),
+  'BP_Interstitial_Android',
+  'BP_Interstitial_IOS'
+);

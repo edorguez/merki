@@ -1,54 +1,58 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { AdEventType, InterstitialAd } from 'react-native-google-mobile-ads';
 import { useIsPremium } from '../../store/authStore';
-import { INTERSTITIAL_AD_UNIT_ID } from '../../lib/ads';
+import { INTERSTITIAL_PLACEMENT_ID } from '../../lib/ads';
+import { loadInterstitial, showInterstitial } from '../../lib/unityAds';
 
 export function useInterstitialAd() {
   const { isPremium, isResolved } = useIsPremium();
-  const interstitialRef = useRef<InterstitialAd | null>(null);
-  const closeResolverRef = useRef<(() => void) | null>(null);
+  const loadedRef = useRef(false);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
+    cancelledRef.current = false;
+
     if (isPremium || !isResolved) {
+      loadedRef.current = false;
       return;
     }
 
-    const interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_UNIT_ID, {
-      requestNonPersonalizedAdsOnly: false,
-    });
-
-    const closed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-      closeResolverRef.current?.();
-      closeResolverRef.current = null;
-      interstitial.load();
-    });
-    const error = interstitial.addAdEventListener(AdEventType.ERROR, () => {
-      closeResolverRef.current?.();
-      closeResolverRef.current = null;
-    });
-
-    interstitial.load();
-    interstitialRef.current = interstitial;
+    loadInterstitial(INTERSTITIAL_PLACEMENT_ID)
+      .then(loaded => {
+        if (!cancelledRef.current) {
+          loadedRef.current = loaded;
+        }
+      })
+      .catch(() => {
+        loadedRef.current = false;
+      });
 
     return () => {
-      closed();
-      error();
-      interstitialRef.current = null;
+      cancelledRef.current = true;
     };
   }, [isPremium, isResolved]);
 
-  const show = useCallback((): Promise<void> => {
-    if (isPremium) {
-      return Promise.resolve();
+  const show = useCallback(async (): Promise<void> => {
+    // Bail out if the user became premium after the ad was loaded.
+    if (isPremium || !loadedRef.current) {
+      return;
     }
-    const ad = interstitialRef.current;
-    if (!ad || !ad.loaded) {
-      return Promise.resolve();
+
+    loadedRef.current = false;
+    try {
+      await showInterstitial(INTERSTITIAL_PLACEMENT_ID);
+    } catch {
+      // Ignore show failures; the next trigger will retry.
     }
-    return new Promise<void>(resolve => {
-      closeResolverRef.current = resolve;
-      ad.show();
-    });
+
+    // Preload the next interstitial for the following trigger.
+    try {
+      const loaded = await loadInterstitial(INTERSTITIAL_PLACEMENT_ID);
+      if (!cancelledRef.current) {
+        loadedRef.current = loaded;
+      }
+    } catch {
+      loadedRef.current = false;
+    }
   }, [isPremium]);
 
   return { show };

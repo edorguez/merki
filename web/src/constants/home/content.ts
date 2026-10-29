@@ -148,6 +148,14 @@ export const footerContent = {
 }
 
 export const appStoreUrls = {
-  ios: '#',
-  android: '#',
+  ios: 'https://apps.apple.com/us/app/merki/id6812844038',
+  android: 'https://play.google.com/store/apps/details?id=com.merki.app',
+}
+
+// Deep links used on the matching mobile platform so the native store app opens
+// directly. Android includes an automatic fallback to the web URL.
+export const appStoreDeepLinks = {
+  ios: 'itms-apps://apps.apple.com/us/app/id6812844038',
+  android:
+    'intent://details?id=com.merki.app#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.merki.app;end',
 }

@@ -121,7 +121,7 @@ To find the Apple **Team ID**: `developer.apple.com` → **Account** → **Membe
 2. Add **internal testers** (they must exist in **Users and Access**).
 3. Assign the build to the group.
 4. Install **TestFlight** on the iPhone and install Merki.
-5. Before opening the app: `AdMob → your app → Test devices` → add the device (the build is production → real ads).
+5. Production builds serve real ads; dev builds (`__DEV__`) start Unity Ads in test mode.
 
 > **External** testers require Beta App Review; **internal** testers do not.
 

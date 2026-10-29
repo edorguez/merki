@@ -712,7 +712,7 @@ Returns `SyncResponse` with per-operation results and `serverVersion` for confli
 ## 13. Future Considerations
 
 - **Crowdsourced pricing**: A `prices` table with confidence‑scoring algorithm for community‑reported product prices (as originally specified).
-- **Ads (free tier)**: Free users will see ads in‑app; premium removes them. Ad provider/SDK is **AdMob** (`react-native-google-mobile-ads`) — the client gates ad rendering on the user's premium status. See `docs/ads.md` for the live integration checklist and deployment status.
+- **Ads (free tier)**: Free users will see ads in‑app; premium removes them. Ad provider/SDK is **Unity Ads** (`mobile/modules/unity-ads`, Game ID + placements) — the client gates ad rendering on the user's premium status. See `docs/ads.md` for the live integration checklist and deployment status.
 - **Premium feature set**: Planned premium‑only features (beyond ad removal) are not yet defined or built.
 - **Offline sync queue**: Local SQLite + background sync with exponential backoff for write‑operations without network. (Partially started — `POST /api/v1/sync` endpoint + `SyncOperation` types exist, `expo-sqlite` dependency added.)
 - **Push notifications**: Via Expo Push Notifications for premium expiry reminders and cart sharing.

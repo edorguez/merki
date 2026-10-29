@@ -61,7 +61,7 @@ const sections = [
       'better-auth: plataforma de autenticación que gestiona el registro, inicio de sesión y sesiones de usuario. Almacena tu correo, nombre e identificador en una base de datos segura.',
       'Google OAuth: si inicias sesión con Google, recibimos tu nombre y correo electrónico de tu perfil de Google.',
       'Resend: servicio de envío de correos electrónicos transaccionales (bienvenida, notificaciones de pago).',
-      'Google AdMob: red de publicidad que muestra anuncios a los usuarios del plan gratuito. Puede recopilar identificadores de publicidad del dispositivo para personalizar anuncios, de acuerdo con las políticas de Google y la normativa aplicable.',
+      'Unity Ads: red de publicidad que muestra anuncios a los usuarios del plan gratuito. Puede recopilar identificadores de publicidad del dispositivo para mostrar anuncios, de acuerdo con las políticas de Unity y la normativa aplicable. Consulta la política de privacidad de Unity en https://unity.com/legal/privacy-policy.',
       'AWS S3: almacenamiento de imágenes de productos solo si decides subir una foto (funcionalidad futura).',
       'Google ML Kit: el reconocimiento de texto OCR se realiza completamente en tu dispositivo. No se envían imágenes a servidores externos.',
     ],

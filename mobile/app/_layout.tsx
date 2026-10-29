@@ -8,6 +8,8 @@ import { useBCV } from '../store/bcvStore';
 import { syncService } from '../services/syncService';
 import { useNetwork } from '../hooks/useNetwork';
 import { useGuestDataMigration } from '../hooks/useGuestDataMigration';
+import { UNITY_GAME_ID } from '../lib/ads';
+import { initializeAds } from '../lib/unityAds';
 import '../styles/unistylesConfigured';
 
 export default function RootLayout() {
@@ -28,8 +30,7 @@ export default function RootLayout() {
     (async () => {
       if (cancelled) return;
       try {
-        const { MobileAds } = await import('react-native-google-mobile-ads');
-        await MobileAds().initialize();
+        await initializeAds(UNITY_GAME_ID, __DEV__);
       } catch {
         // Ad SDK unavailable in this environment.
       }
