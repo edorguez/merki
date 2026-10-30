@@ -29,7 +29,7 @@
   margin-bottom: 2.5rem;
 
   &:hover {
-    color: var(--color-ember-orange);
+    color: var(--color-secondary-text);
   }
 
   span {
@@ -44,11 +44,11 @@
 }
 
 .title {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: var(--text-heading-lg);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--leading-heading-lg);
-  letter-spacing: var(--tracking-heading-lg);
+  font-weight: 700;
+  line-height: 1.09;
+  letter-spacing: -1.14px;
   color: var(--color-charcoal-primary);
   margin-bottom: 1rem;
 }
@@ -123,7 +123,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--color-ember-orange);
+    background: var(--color-secondary);
     flex-shrink: 0;
   }
 }
@@ -136,7 +136,7 @@
   color: var(--color-charcoal-primary);
   margin-top: 0.75rem;
   padding: 1rem 1.25rem;
-  background: var(--color-parchment-card);
+  background: var(--surface-card-surface);
   border-radius: var(--radius-cards);
   border: 1px solid var(--color-stone-surface);
 }

@@ -1,11 +1,14 @@
-import { stats, testimonials } from '../../constants/home/content'
+import { sectionEyebrows, stats } from '../../constants/home/content'
 import { Counter } from './Counter'
 import styles from './SocialProofSection.module.scss'
 
 export function SocialProofSection() {
   return (
-    <section id="testimonios" className={styles.section}>
-      <h2 className={`${styles.title} gsap-reveal`}>Amigos de Merki</h2>
+    <section id="numeros" className={styles.section}>
+      <p className="eyebrow">{sectionEyebrows.stats}</p>
+      <h2 className={styles.title}>
+        <span className={`${styles.titleInner} mask-line`}>Merki en números</span>
+      </h2>
 
       <div className={`${styles.stats} gsap-reveal`}>
         {stats.map((stat, i) => (
@@ -16,39 +19,6 @@ export function SocialProofSection() {
             <span className={styles.statLabel}>{stat.label}</span>
           </div>
         ))}
-      </div>
-
-      <div className={styles.carousel}>
-        <div className={styles.track}>
-          {testimonials.map((t, i) => (
-            <article key={i} className={`${styles.card} gsap-reveal`}>
-              <div className={styles.cardHeader}>
-                <div className={styles.avatar}>
-                  <img src={t.avatar} alt={t.name} width="48" height="48" loading="lazy" />
-                </div>
-                <div>
-                  <p className={styles.name}>{t.name}</p>
-                  <p className={styles.role}>{t.role}</p>
-                </div>
-              </div>
-              <p className={styles.quote}>“{t.text}”</p>
-            </article>
-          ))}
-          {testimonials.map((t, i) => (
-            <article key={`clone-${i}`} className={styles.card} aria-hidden="true">
-              <div className={styles.cardHeader}>
-                <div className={styles.avatar}>
-                  <img src={t.avatar} alt="" width="48" height="48" loading="lazy" />
-                </div>
-                <div>
-                  <p className={styles.name}>{t.name}</p>
-                  <p className={styles.role}>{t.role}</p>
-                </div>
-              </div>
-              <p className={styles.quote}>“{t.text}”</p>
-            </article>
-          ))}
-        </div>
       </div>
     </section>
   )

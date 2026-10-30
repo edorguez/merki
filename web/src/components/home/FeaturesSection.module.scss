@@ -1,12 +1,17 @@
 .section {
-  max-width: var(--page-max-width);
-  margin: 0 auto;
+  width: 100%;
+  background: var(--surface-card-surface);
   padding: 6rem 1.25rem;
   scroll-margin-top: 5rem;
 
   @media (min-width: 768px) {
     padding: 6rem 1.5rem;
   }
+}
+
+.container {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
 }
 
 .heading {
@@ -17,7 +22,13 @@
   letter-spacing: -1.14px;
   color: var(--color-charcoal-primary);
   text-align: center;
-  margin: 0 0 3rem;
+  margin: 0.5rem 0 calc(3rem - 0.1em);
+  padding-bottom: 0.1em;
+  overflow: hidden;
+}
+
+.headingInner {
+  display: block;
 }
 
 .grid {
@@ -32,8 +43,9 @@
 
 .card {
   background: var(--surface-card-surface);
+  border: 1px solid var(--color-stone-surface);
   border-radius: var(--radius-cards);
-  box-shadow: var(--shadow-subtle);
+  box-shadow: var(--shadow-sm);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -42,15 +54,17 @@
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-sm);
+    box-shadow:
+      0 12px 32px -12px rgba(29, 92, 29, 0.18),
+      0 4px 12px rgba(0, 0, 0, 0.06);
   }
 }
 
 .panel {
   height: 192px;
-  border-radius: var(--radius-lg);
-  background: var(--color-parchment-card);
-  border: 1px solid var(--color-stone-surface);
+  border-radius: var(--radius-cards);
+  background: var(--surface-primary-tint);
+  border: 1px solid var(--color-primary-container);
   overflow: hidden;
   display: flex;
   align-items: center;

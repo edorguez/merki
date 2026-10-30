@@ -126,6 +126,7 @@
   --surface-card-surface: #ffffff;
   --surface-recessed-panel: #f8f7f4;
   --surface-stone-tint: #f2f0ed;
+  --surface-primary-tint: #f1f8f1;
   --surface-dark-shell: #000000;
 
   /* Legacy aliases (for backward compat while migrating) */
@@ -190,6 +191,22 @@ body ::selection {
   color: #ffffff;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Film grain: adds subtle texture over the flat vector surfaces. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -216,6 +233,29 @@ body ::selection {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* Small uppercase kicker above section titles. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-secondary-text);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.7;
 }
 
 @media (prefers-reduced-motion: reduce) {

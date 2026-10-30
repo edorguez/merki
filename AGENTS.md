@@ -77,9 +77,6 @@ Per-app:
 
 ## Architecture map
 
-<!-- Added by ECC codebase-onboarding (2026-09-28). Everything above is
-     unchanged; this section only adds concrete paths, flows, and conventions. -->
-
 ### Layout
 
 | Path | Purpose |
@@ -138,8 +135,6 @@ Load these only when the task needs them — they are large.
 - `docs/openapi.yaml` — API contract (**outdated**; prefer handlers).
 - `docs/ads.md` — Unity Ads integration status (free tier).
 - `docs/release-android.md`, `docs/release-ios.md` — release runbooks.
-- `docs/opencode-ecc-workflow.md` — how to work here with OpenCode + ECC
-  (Plan → Build → Verify flow, command/agent cheat sheet).
 
 ## Skills routing
 

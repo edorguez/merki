@@ -13,6 +13,10 @@ const targets = [
   { src: 'merki-checkout.png', out: 'merki-checkout.webp', width: 720 },
   { src: 'merki-calculator.png', out: 'merki-calculator.webp', width: 600 },
   { src: 'merki-logo.png', out: 'merki-logo.webp', width: 300 },
+  // App screenshot shown inside the showcase phone (screen is ~288px wide).
+  { src: 'merki-home-screen.png', out: 'merki-home-screen.webp', width: 600 },
+  // Brand mascot inside the showcase speech bubble (~56px wide).
+  { src: 'merki-mascot.png', out: 'merki-mascot.webp', width: 160 },
 ]
 
 for (const t of targets) {

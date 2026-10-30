@@ -7,7 +7,10 @@
   justify-content: center;
   overflow: hidden;
   padding: 7rem 1.5rem 5rem;
-  background: var(--color-warm-canvas);
+  background:
+    radial-gradient(640px 420px at 12% 18%, rgba(51, 153, 51, 0.07), transparent 65%),
+    radial-gradient(720px 480px at 88% 82%, rgba(244, 162, 97, 0.06), transparent 65%),
+    var(--color-warm-canvas);
 }
 
 .content {
@@ -46,6 +49,24 @@
 
 .titleAccent {
   color: var(--color-primary);
+  background-image: linear-gradient(
+    transparent 50%,
+    rgba(244, 162, 97, 0.35) 50%,
+    rgba(244, 162, 97, 0.35) 85%,
+    transparent 85%
+  );
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 0% 100%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: highlighterSwipe 0.9s 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes highlighterSwipe {
+  to {
+    background-size: 100% 100%;
+  }
 }
 
 .description {
@@ -61,6 +82,11 @@
 
 .buttons {
   margin-top: 0.75rem;
+}
+
+.heroImageWrap {
+  display: flex;
+  justify-content: center;
 }
 
 .heroImage {

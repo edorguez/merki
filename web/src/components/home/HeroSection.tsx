@@ -7,14 +7,16 @@ export function HeroSection() {
   return (
     <section className={styles.hero} id="hero">
       <div className={styles.content}>
-        <img
-          src={heroContent.illustration}
-          alt="Ilustración de marca Merki"
-          width="240"
-          height="240"
-          fetchPriority="high"
-          className={`${styles.heroImage} gsap-hero-text`}
-        />
+        <div className={`${styles.heroImageWrap} gsap-parallax`}>
+          <img
+            src={heroContent.illustration}
+            alt="Ilustración de marca Merki"
+            width="240"
+            height="240"
+            fetchPriority="high"
+            className={`${styles.heroImage} gsap-hero-text`}
+          />
+        </div>
         <h1 className={`${styles.title} gsap-hero-text`}>
           {heroContent.title}
           <br />

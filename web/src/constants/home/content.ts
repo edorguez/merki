@@ -3,17 +3,8 @@ import merkiIllustration from '../../assets/merki-illustration.webp'
 import merkiScan from '../../assets/merki-scan.webp'
 import merkiCalculator from '../../assets/merki-calculator.webp'
 import merkiCheckout from '../../assets/merki-checkout.webp'
-import avatarSofia from '../../assets/avatar-sofia.webp'
-import avatarCarlos from '../../assets/avatar-carlos.webp'
-import avatarElena from '../../assets/avatar-elena.webp'
-import characterAvatar from '../../assets/character.webp'
-
-export interface Testimonial {
-  name: string
-  role: string
-  text: string
-  avatar: string
-}
+import merkiHomeScreen from '../../assets/merki-home-screen.webp'
+import merkiMascot from '../../assets/merki-mascot.webp'
 
 export interface Stat {
   label: string
@@ -51,8 +42,15 @@ export const heroContent = {
 export const navLinks: NavLink[] = [
   { label: 'Características', href: '#caracteristicas' },
   { label: 'La App', href: '#la-app' },
-  { label: 'Testimonios', href: '#testimonios' },
 ]
+
+export const sectionEyebrows = {
+  features: 'Características',
+  showcase: 'La App',
+  stats: 'Hechos, no promesas',
+}
+
+export const showcaseTitle = 'Tu mercado en una pantalla'
 
 export const features: Feature[] = [
   {
@@ -79,59 +77,21 @@ export const features: Feature[] = [
 ]
 
 export const stats: Stat[] = [
-  { label: 'Descargas', value: 50, suffix: 'k+' },
-  { label: 'App Store', value: 4.8, suffix: '/5', isFloat: true },
+  { label: 'Monedas al instante (Bs y USD)', value: 2, suffix: '' },
+  { label: 'Funcional sin señal', value: 100, suffix: '%' },
+  { label: 'Hojas de cálculo', value: 0, suffix: '' },
 ]
 
 export const showcaseContent = {
-  title: 'Mi Billetera',
-  balanceLabel: 'Balance Total',
-  balanceValue: '$450.25',
-  transactionsLabel: 'Transacciones Recientes',
-  character: {
-    src: characterAvatar
-  },
-  bubbleText: '¡Llevas un 80% de tu presupuesto este mes!',
+  screenshot: merkiHomeScreen,
+  mascot: merkiMascot,
+  bubbleText: '¡Hola! Soy Merki. Crea tu carrito y yo llevo las cuentas en Bs y USD.',
 }
-
-
-export const testimonials: Testimonial[] = [
-  {
-    name: 'Sofía R.',
-    role: 'Madre de familia',
-    text: 'Escanear las facturas del automercado me ha salvado horas. Y ver los precios en ambas monedas al instante es invaluable.',
-    avatar: avatarSofia,
-  },
-  {
-    name: 'Carlos M.',
-    role: 'Estudiante',
-    text: 'La interfaz es súper limpia. Nada de menús complicados, solo abro la app y anoto mis gastos diarios.',
-    avatar: avatarCarlos,
-  },
-  {
-    name: 'Elena P.',
-    role: 'Emprendedora',
-    text: 'Uso Merki para los gastos de mi pequeño negocio. El modo offline me salva cuando estoy en el mercado mayorista.',
-    avatar: avatarElena,
-  },
-  {
-    name: 'Diego G.',
-    role: 'Ingeniero y papá',
-    text: 'Comparo precios entre mercados y Merki me dice al instante cuánto gastaré en dólares. Mi esposa y yo llevamos el presupuesto familiar sin pelear.',
-    avatar: avatarElena,
-  },
-  {
-    name: 'Valentina L.',
-    role: 'Diseñadora freelance',
-    text: 'Escaneo mis compras del mes y al llegar a casa todo está ordenado por categorías. Ver el gasto en Bs y USD a la vez me cambió la vida.',
-    avatar: avatarSofia,
-  },
-]
 
 export const ctaContent = {
   title: 'Empieza a controlar tus gastos hoy mismo',
   description:
-    'Únete a miles de usuarios que ya gestionan su dinero de forma inteligente y sin estrés.',
+    'Crea tu primera lista en menos de un minuto y controla tus gastos en Bs y USD, sin hojas de cálculo.',
   iosLabel: 'App Store',
   androidLabel: 'Google Play',
 }

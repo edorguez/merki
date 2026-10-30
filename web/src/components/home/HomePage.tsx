@@ -65,7 +65,7 @@ export function HomePage() {
 
         // Product showcase — phone entrance + bubble pop
         if (isDesktop) {
-          gsap.from('.gsap-showcase-phone', {
+          gsap.from('.gsap-showcase-enter', {
             y: 90,
             rotationY: -18,
             rotationX: 6,
@@ -84,6 +84,25 @@ export function HomePage() {
             scrollTrigger: { trigger: '#la-app', start: 'top 70%', toggleActions: 'play none none reverse' },
           })
         }
+
+        // Parallax drift for elements marked with .gsap-parallax
+        gsap.utils.toArray<HTMLElement>('.gsap-parallax').forEach((el) => {
+          gsap.to(el, {
+            y: -48,
+            ease: 'none',
+            scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+          })
+        })
+
+        // Section titles reveal through a line mask
+        gsap.utils.toArray<HTMLElement>('.mask-line').forEach((el) => {
+          gsap.from(el, {
+            yPercent: 115,
+            duration: 0.9,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none reverse' },
+          })
+        })
 
         // CTA card — pop in
         gsap.from('#cta-card', {

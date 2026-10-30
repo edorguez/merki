@@ -1,12 +1,50 @@
 .section {
   max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: 4rem 1.25rem 6rem;
+  padding: 0 1.25rem 6rem;
   scroll-margin-top: 5rem;
 
   @media (min-width: 768px) {
-    padding: 4rem 1.5rem 6rem;
+    padding: 0 1.5rem 6rem;
   }
+}
+
+/* Tinted stage that rides up over the white band above it. */
+.stagePanel {
+  position: relative;
+  margin-top: -5rem;
+  padding: 3rem 1.25rem 0;
+  border: 1px solid var(--color-primary-container);
+  border-radius: var(--radius-cardslarge);
+  background:
+    radial-gradient(520px 280px at 82% 8%, rgba(244, 162, 97, 0.12), transparent 70%),
+    var(--surface-primary-tint);
+
+  @media (min-width: 768px) {
+    padding: 3.5rem 2rem 0;
+  }
+}
+
+.header {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.5vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.9px;
+  color: var(--color-charcoal-primary);
+  margin: 0.5rem 0 -0.1em;
+  padding-bottom: 0.1em;
+  overflow: hidden;
+}
+
+.headingInner {
+  display: block;
 }
 
 .stage {
@@ -15,23 +53,45 @@
   justify-content: center;
   align-items: center;
   min-height: 620px;
-  overflow: hidden;
+  /* Clearance for the mouse-tilt: rotateX + perspective lift the phone's top
+     edge ~55px above its resting position. */
+  padding: 4.5rem 0 3rem;
+  overflow: visible;
 }
 
 /* Dark phone mockup */
-.phoneWrap {
+.phoneParallax {
   position: relative;
   z-index: 10;
-  perspective: 1200px;
 }
 
+.phoneWrap {
+  position: relative;
+  perspective: 1200px;
+  animation: phoneFloat 6s ease-in-out infinite;
+}
+
+@keyframes phoneFloat {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -8px;
+  }
+}
+
+/* Height follows the screenshot's 1320:2868 aspect ratio so nothing is cropped. */
 .phone {
   width: 300px;
-  height: 600px;
+  height: 638px;
   background: var(--color-obsidian);
   border-radius: 40px;
   padding: 6px;
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    0 24px 60px -12px rgba(29, 92, 29, 0.28),
+    0 8px 24px rgba(0, 0, 0, 0.06);
   transform-style: preserve-3d;
   will-change: transform;
 }
@@ -42,136 +102,13 @@
   border-radius: 34px;
   background: var(--color-warm-canvas);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: 1.25rem;
-  gap: 1rem;
 }
 
-.walletHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 0.75rem;
-}
-
-.walletTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.25px;
-  color: var(--color-charcoal-primary);
-  margin: 0;
-}
-
-.balanceCard {
-  background: var(--color-primary-pressed);
-  color: #ffffff;
-  border-radius: 12px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.balanceLabel {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.balanceValue {
-  font-family: var(--font-display);
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.75px;
-}
-
-.transactions {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.transactionsLabel {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-graphite);
-}
-
-.txRow {
-  background: var(--surface-card-surface);
-  border: 1px solid var(--color-stone-surface);
-  border-radius: 10px;
-  padding: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.txLeft {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.txBadge {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.txBadgeNeutral {
-  background: var(--color-stone-surface);
-}
-
-.receiveDot {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 10px;
-  height: 10px;
-  background: var(--color-primary);
-  border: 2px solid #ffffff;
-  border-radius: 9999px;
-}
-
-.txMeta {
-  display: flex;
-  flex-direction: column;
-}
-
-.txName {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-charcoal-primary);
-}
-
-.txDate {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-graphite);
-}
-
-.txAmount {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-charcoal-primary);
-}
-
-.txPositive {
-  color: var(--color-primary-pressed);
+.screenImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Speech bubble */
@@ -188,20 +125,54 @@
   border-radius: 16px;
   padding: 1rem;
   box-shadow: var(--shadow-sm);
-  max-width: 240px;
+  max-width: 260px;
+  animation: bubbleBob 5s ease-in-out infinite;
 
   @media (min-width: 1024px) {
     display: flex;
   }
 }
 
-.bubbleAvatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  background: var(--color-stone-surface);
-  object-fit: cover;
+@keyframes bubbleBob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+.bubbleMascot {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
   flex-shrink: 0;
+  transform-origin: 50% 85%;
+}
+
+.bubble:hover .bubbleMascot {
+  animation: mascotWave 0.8s ease-in-out;
+}
+
+@keyframes mascotWave {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+
+  25% {
+    rotate: -10deg;
+  }
+
+  50% {
+    rotate: 8deg;
+  }
+
+  75% {
+    rotate: -5deg;
+  }
 }
 
 .bubbleText {

@@ -39,7 +39,5 @@ gen/
 # .idea/
 # .vscode/
 
-# ECC / OpenCode project-local install (generated, not committed)
+# OpenCode project-local config (generated, not committed)
 .opencode/
-# ECC memory vault (if used)
-.ecc/
