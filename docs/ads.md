@@ -65,15 +65,24 @@ Env overrides: `EXPO_PUBLIC_UNITY_{BANNER,INTERSTITIAL}_PLACEMENT_{ANDROID,IOS}`
 
 | Placement | Format | Location |
 |-----------|--------|----------|
-| Home in-feed | MREC 300x250 (banner placement) | `app/(tabs)/index.tsx` (`AdMrec`) |
-| History in-feed | MREC 300x250 (banner placement) | `app/(tabs)/history.tsx` (`AdMrec`) |
+| Home in-feed | Banner 320x50 | `app/(tabs)/index.tsx` (`AdBanner`) |
+| History in-feed | Banner 320x50 | `app/(tabs)/history.tsx` (`AdBanner`) |
 | Profile | Banner 320x50 | `app/(tabs)/profile.tsx` (`AdBanner`) |
 | After checkout | Interstitial | `app/(cart)/[id].tsx` (`useInterstitialAd`) |
 | Cart detail | Banner 320x50 | `app/(cart)/[id].tsx` (`AdBanner`) |
 | Every 10 scans | Interstitial | `app/(cart)/scan.tsx` (`useInterstitialAd`) |
 
-Unity Ads has **no native ad format**; the two feed slots use MREC
-(`adSize="mrec"` → `UnityBannerSize.iabStandard` / 300x250).
+Unity Ads has **no native ad format**. All banner slots use the **standard
+320x50 banner**: our Unity placements are configured as Banner format, so a
+300x250 MREC request either fails or gets filled with a stretched 320x50 creative
+(which is what produced a big empty white card in the feeds).
+
+**No ad, no card.** Banners render bare — no card, border, or padding — centered
+in the available width. The native banner emits `onAdLoaded` / `onAdError`; `AdBanner`
+keeps the ad out of the layout (absolutely positioned, invisible, but still
+mounted so Unity can load) until `onAdLoaded` fires. If loading fails after the
+native retries, nothing is rendered — never an empty slot. Because it is out of
+flow while loading, it also adds no `gap` spacing until it is visible.
 
 ## app-ads.txt
 
@@ -100,6 +109,33 @@ EAS prebuild. **Review monthly** as Unity requests.
 - The native module exposes `loadInterstitial` / `showInterstitial`; banners load
   automatically when mounted.
 
+## Debugging ads
+
+All native ad events are logged:
+
+- Android: `adb logcat | grep UnityAds`
+- iOS: filter the Xcode console / `Console.app` on `[UnityAds]`
+
+Logs cover initialization, banner load/show/click/error (with error codes), and
+interstitial load/show/click/fail. A silent white box now always leaves a trace.
+
+Two failure modes were fixed in this pass, worth remembering when touching the
+module:
+
+1. **Readiness race.** Ad views must not mount before the SDK finishes
+   initializing. `initialize()` now resolves only on the real init callback, and
+   `AdBanner` / `useInterstitialAd` wait for it via `useAdsReady()`.
+2. **Android dp vs px.** `UnityBannerSize` is in dp; `FrameLayout.LayoutParams`
+   expects pixels. Passing dp straight through renders the banner at
+   `1/density` of its size — an empty white card.
+3. **Wrong format.** Do not request an MREC (300x250) against these placements;
+   they are Banner-format only. Use the standard 320x50 banner.
+
+Both the Android and iOS banner APIs in Unity Ads 4.21 are marked deprecated
+(`UADSBannerView` → `UADSBannerAd`, `UADSBannerViewDelegate` →
+`UADSBannerAdDelegate`). They still work; migrate before bumping the SDK major
+version.
+
 ## TODO — before / at launch
 
 - [x] **Provider migration**: dependency, config plugin, IDs, web stub, aliases,
@@ -109,7 +145,7 @@ EAS prebuild. **Review monthly** as Unity requests.
 - [ ] **SKAdNetworkItems** included in the next iOS build (already in `app.json`).
 - [ ] **Unity Payments / W-8BEN** completed in the dashboard.
 - [ ] **Build + submit** Android (AAB) and iOS with the new native module.
-- [ ] **Test**: banner on profile/cart, MREC on home/history, interstitial after
+- [ ] **Test**: banner on home/history/profile/cart, interstitial after
       checkout and every 10 scans; premium users see none.
 - [ ] **Google Play Console → Data safety**: declare "Advertising or marketing" +
       ad/device IDs (partner: Unity Ads).

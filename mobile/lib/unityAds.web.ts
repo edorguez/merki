@@ -4,12 +4,25 @@ import { View } from 'react-native';
 
 export const UnityBannerView = (_props: {
   placementId?: string;
-  adSize?: string;
+  onAdLoaded?: () => void;
+  onAdError?: () => void;
   style?: unknown;
 }) => createElement(View, null);
 
 export function initializeAds(_gameId: string, _testMode: boolean): Promise<boolean> {
   return Promise.resolve(false);
+}
+
+export function ensureAdsInitialized(_gameId: string, _testMode: boolean): Promise<boolean> {
+  return Promise.resolve(false);
+}
+
+export function areAdsReady(): boolean {
+  return false;
+}
+
+export function subscribeAdsReady(_onChange: () => void): () => void {
+  return () => {};
 }
 
 export function isInitialized(): boolean {

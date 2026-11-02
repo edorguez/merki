@@ -10,12 +10,54 @@ type UnityAdsNativeModule = {
 const nativeModule = requireNativeModule<UnityAdsNativeModule>('UnityAds');
 
 /**
- * Native banner view. `adSize` accepts `banner` (320x50) or `mrec` (300x250).
+ * Native banner view (standard 320x50). `onAdLoaded` fires when the creative is
+ * ready; `onAdError` fires when loading definitively failed.
  */
 export const UnityBannerView = requireNativeView('UnityAds', 'UnityBannerView');
 
+let initPromise: Promise<boolean> | null = null;
+let ready = false;
+const listeners = new Set<() => void>();
+
+function notify() {
+  listeners.forEach(listener => listener());
+}
+
 export function initializeAds(gameId: string, testMode: boolean): Promise<boolean> {
   return nativeModule.initialize(gameId, testMode);
+}
+
+/**
+ * Initializes the SDK once per app run. Every caller shares the same promise, so
+ * ads components can wait for readiness instead of racing the SDK boot.
+ */
+export function ensureAdsInitialized(gameId: string, testMode: boolean): Promise<boolean> {
+  if (!initPromise) {
+    initPromise = initializeAds(gameId, testMode)
+      .then(initialized => {
+        ready = initialized;
+        notify();
+        return initialized;
+      })
+      .catch(() => {
+        ready = false;
+        notify();
+        return false;
+      });
+  }
+  return initPromise;
+}
+
+/** True once the SDK finished initializing successfully. */
+export function areAdsReady(): boolean {
+  return ready;
+}
+
+export function subscribeAdsReady(onChange: () => void): () => void {
+  listeners.add(onChange);
+  return () => {
+    listeners.delete(onChange);
+  };
 }
 
 export function isInitialized(): boolean {

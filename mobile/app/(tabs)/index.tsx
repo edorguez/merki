@@ -14,7 +14,7 @@ import {
 import { TipCard } from '../../components/home/TipCard';
 import { Toast } from '../../components/shared/Toast';
 import { FadeIn } from '../../components/shared/FadeIn';
-import { AdMrec } from '../../components/ads/AdMrec';
+import { AdBanner } from '../../components/ads/AdBanner';
 import { useAppTheme } from '../../styles/theme';
 import { useAuth } from '../../store/authStore';
 import { savingsTips } from '../../utils/tips';
@@ -79,9 +79,7 @@ export default function HomeTab() {
           <BCVRateCard ref={bcvRef} />
         </FadeIn>
 
-        <FadeIn delay={135}>
-          <AdMrec />
-        </FadeIn>
+        <AdBanner />
 
         <FadeIn delay={180}>
           <LatestCartsSection ref={cartsRef} userId={user?.id} />

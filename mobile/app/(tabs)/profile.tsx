@@ -134,9 +134,7 @@ export default function ProfileTab() {
             )}
           </FadeIn>
 
-          <View>
-            <AdBanner />
-          </View>
+          <AdBanner />
 
           {!user?.isAnonymous && (
             <FadeIn delay={220} distance={12}>

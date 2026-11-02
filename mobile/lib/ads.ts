@@ -24,7 +24,7 @@ export const UNITY_GAME_ID = pick(
   '800417100'
 );
 
-/** Banner placement, also used for the 300x250 MREC in the feeds. */
+/** Banner placement (standard 320x50, the only format our Unity placements serve). */
 export const BANNER_PLACEMENT_ID = pick(
   env('EXPO_PUBLIC_UNITY_BANNER_PLACEMENT_ANDROID'),
   env('EXPO_PUBLIC_UNITY_BANNER_PLACEMENT_IOS'),

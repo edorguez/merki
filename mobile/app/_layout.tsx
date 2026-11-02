@@ -9,7 +9,7 @@ import { syncService } from '../services/syncService';
 import { useNetwork } from '../hooks/useNetwork';
 import { useGuestDataMigration } from '../hooks/useGuestDataMigration';
 import { UNITY_GAME_ID } from '../lib/ads';
-import { initializeAds } from '../lib/unityAds';
+import { ensureAdsInitialized } from '../lib/unityAds';
 import '../styles/unistylesConfigured';
 
 export default function RootLayout() {
@@ -30,7 +30,7 @@ export default function RootLayout() {
     (async () => {
       if (cancelled) return;
       try {
-        await initializeAds(UNITY_GAME_ID, __DEV__);
+        await ensureAdsInitialized(UNITY_GAME_ID, __DEV__);
       } catch {
         // Ad SDK unavailable in this environment.
       }

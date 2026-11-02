@@ -18,7 +18,7 @@ import { FadeIn } from '../../components/shared/FadeIn';
 import { Skeleton } from '../../components/shared/Skeleton';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MERKI_LOGO } from '../../constants/images';
-import { AdMrec } from '../../components/ads/AdMrec';
+import { AdBanner } from '../../components/ads/AdBanner';
 
 const AD_AFTER_PRODUCTS = 3;
 
@@ -168,7 +168,7 @@ export default function HistoryTab() {
               {carts.slice(0, AD_AFTER_PRODUCTS).map(renderCart)}
             </View>
 
-            {carts.length > 0 ? <AdMrec /> : null}
+            {carts.length > 0 ? <AdBanner /> : null}
 
             {carts.length > AD_AFTER_PRODUCTS ? (
               <View style={styles.historyList}>
@@ -182,7 +182,7 @@ export default function HistoryTab() {
               />
             </FadeIn>
 
-            {carts.length === 0 ? <AdMrec /> : null}
+            {carts.length === 0 ? <AdBanner /> : null}
           </>
         )}
       </ScrollView>
