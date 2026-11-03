@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "expo.modules.unityads.unity-ads-release-31:/color/common_google_signin_btn_tint.xml",
+        "source": "expo.modules.unityads.unity-ads-play-services-base-18.0.1-14:/color/common_google_signin_btn_tint.xml"
+    },
+    {
+        "merged": "expo.modules.unityads.unity-ads-release-31:/color/common_google_signin_btn_text_light.xml",
+        "source": "expo.modules.unityads.unity-ads-play-services-base-18.0.1-14:/color/common_google_signin_btn_text_light.xml"
+    },
+    {
+        "merged": "expo.modules.unityads.unity-ads-release-31:/color/common_google_signin_btn_text_dark.xml",
+        "source": "expo.modules.unityads.unity-ads-play-services-base-18.0.1-14:/color/common_google_signin_btn_text_dark.xml"
+    }
+]

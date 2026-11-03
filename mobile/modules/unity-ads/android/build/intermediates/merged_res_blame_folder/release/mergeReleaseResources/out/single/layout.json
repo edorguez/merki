@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "expo.modules.unityads.unity-ads-release-31:/layout/notification_template_part_chronometer.xml",
+        "source": "expo.modules.unityads.unity-ads-core-1.9.0-13:/layout/notification_template_part_chronometer.xml"
+    },
+    {
+        "merged": "expo.modules.unityads.unity-ads-release-31:/layout/custom_dialog.xml",
+        "source": "expo.modules.unityads.unity-ads-core-1.9.0-13:/layout/custom_dialog.xml"
+    },
+    {
+        "merged": "expo.modules.unityads.unity-ads-release-31:/layout/notification_template_part_time.xml",
+        "source": "expo.modules.unityads.unity-ads-core-1.9.0-13:/layout/notification_template_part_time.xml"
+    }
+]

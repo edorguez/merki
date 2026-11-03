@@ -2,7 +2,7 @@
   "expo": {
     "name": "Merki",
     "slug": "merki",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/system/icon.png",
     "userInterfaceStyle": "light",
@@ -309,7 +309,9 @@
             "buildConfig": true,
             "abiFilters": [
               "arm64-v8a"
-            ]
+            ],
+            "enableMinifyInReleaseBuilds": true,
+            "extraProguardRules": "# react-native-unistyles + Nitro Modules: the C++ side resolves these Kotlin classes\n# through hardcoded JNI descriptors (e.g. \"Lcom/unistyles/UnistylesModule;\").\n-keep class com.unistyles.** { *; }\n-keep class com.margelo.nitro.** { *; }\n\n# Reflection metadata for Expo modules, Kotlin and MLKit\n-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,Exceptions\n\n# Unity Ads references optional AdMob/billing classes it does not bundle\n-dontwarn com.unity3d.**"
           }
         }
       ],
