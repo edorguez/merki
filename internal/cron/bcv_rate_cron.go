@@ -11,7 +11,9 @@ import (
 
 const (
 	retryInterval = 10 * time.Minute
-	maxRetries    = 36
+	// maxRetries covers a full day of attempts so a transient upstream outage does
+	// not leave the rate stale until the next morning's run.
+	maxRetries = int(24 * time.Hour / retryInterval)
 )
 
 func StartBCVRateCron(svc services.BCVRateService, log *zap.Logger) {
@@ -46,7 +48,14 @@ func scrapeWithRetry(ctx context.Context, svc services.BCVRateService, log *zap.
 		}
 
 		if i < maxRetries-1 {
-			log.Warn("BCV scrape failed, retrying",
+			logf := log.Warn
+			if i == 0 {
+				// First failure of a cycle is the signal that scraping broke
+				// (upstream markup change, network issue); make it visible even in
+				// setups that only ship error-level logs.
+				logf = log.Error
+			}
+			logf("BCV scrape failed, retrying",
 				zap.Int("attempt", i+1),
 				zap.Int("max_retries", maxRetries),
 				zap.Duration("retry_in", retryInterval),
@@ -61,7 +70,7 @@ func scrapeWithRetry(ctx context.Context, svc services.BCVRateService, log *zap.
 		} else {
 			log.Error("BCV scrape failed after all retries, giving up until next cycle",
 				zap.Int("attempts", maxRetries),
-				zap.Duration("retry_duration", maxRetries*retryInterval),
+				zap.Duration("retry_duration", time.Duration(maxRetries)*retryInterval),
 				zap.Error(err),
 			)
 		}
