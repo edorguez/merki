@@ -78,11 +78,13 @@ Unity Ads has **no native ad format**. All banner slots use the **standard
 (which is what produced a big empty white card in the feeds).
 
 **No ad, no card.** Banners render bare — no card, border, or padding — centered
-in the available width. The native banner emits `onAdLoaded` / `onAdError`; `AdBanner`
-keeps the ad out of the layout (absolutely positioned, invisible, but still
-mounted so Unity can load) until `onAdLoaded` fires. If loading fails after the
-native retries, nothing is rendered — never an empty slot. Because it is out of
-flow while loading, it also adds no `gap` spacing until it is visible.
+in the available width. The native banner emits `onAdLoaded` / `onAdError`;
+`AdBanner` keeps the slot collapsed (`height: 0`, `opacity: 0`) — while the
+native view stays mounted so Unity can load into it — until `onAdLoaded` fires.
+If loading fails after the native retries, nothing is rendered — never an empty
+slot. Collapsing uses height/opacity only, never `position`, because
+re-positioning detaches the native view on Android and destroys the loaded
+banner.
 
 ## app-ads.txt
 
@@ -108,6 +110,13 @@ EAS prebuild. **Review monthly** as Unity requests.
 - Production builds serve real ads — never click your own live ads.
 - The native module exposes `loadInterstitial` / `showInterstitial`; banners load
   automatically when mounted.
+- Banners load a fresh creative on every focus (Unity cannot reuse a banner once
+  it leaves the window). Requests are debounced to one per 5s per placement, so
+  switching tabs faster than that shows a `banner: debounced` log and the ad
+  appears when the window elapses.
+- Verified on Android dev build (test mode) on 2026-11-24: banner appears on
+  home/history/profile/cart after each tab switch, interstitial loads on the cart
+  screen and shows after checkout / every 10 scans.
 
 ## Debugging ads
 
@@ -116,20 +125,46 @@ All native ad events are logged:
 - Android: `adb logcat | grep UnityAds`
 - iOS: filter the Xcode console / `Console.app` on `[UnityAds]`
 
-Logs cover initialization, banner load/show/click/error (with error codes), and
-interstitial load/show/click/fail. A silent white box now always leaves a trace.
+Logs cover initialization, banner attach/detach/load/show/click/error (with error
+codes), debounce decisions, and interstitial load/show/click/fail. A silent white
+box now always leaves a trace.
 
-Two failure modes were fixed in this pass, worth remembering when touching the
-module:
+Failure modes fixed in this pass, worth remembering when touching the module:
 
 1. **Readiness race.** Ad views must not mount before the SDK finishes
    initializing. `initialize()` now resolves only on the real init callback, and
-   `AdBanner` / `useInterstitialAd` wait for it via `useAdsReady()`.
+   `AdBanner` / `useInterstitialAd` wait for it via `useAdsReady()`. A failed
+   init is no longer cached forever: the root layout retries whenever the app
+   returns to the foreground, and `useAdsReady` subscribers re-render when a
+   later attempt succeeds.
 2. **Android dp vs px.** `UnityBannerSize` is in dp; `FrameLayout.LayoutParams`
    expects pixels. Passing dp straight through renders the banner at
    `1/density` of its size — an empty white card.
 3. **Wrong format.** Do not request an MREC (300x250) against these placements;
    they are Banner-format only. Use the standard 320x50 banner.
+4. **Never toggle `position` to hide the banner.** React Native keeps
+   absolutely-positioned children at the end of the parent's child list, so
+   flipping a wrapper between `absolute` and `relative` re-inserts the view into
+   the Android hierarchy. The detach runs `UnityBannerView.onDetachedFromWindow`,
+   which destroys the already-loaded banner — the slot then renders empty
+   (confirmed in logcat: `banner: loaded` → `BannerView.destroy()` 1 ms later).
+   Collapse the slot with `height`/`opacity` instead. Both native views also
+   re-arm the load on re-attach (`onAttachedToWindow` / `didMoveToWindow`) so a
+   re-inserted view recovers instead of staying blank.
+5. **One banner per placement, fresh load per visit.** All banner slots share
+   `BP_Banner_Android` / `BP_Banner_IOS`, and Unity keeps a single banner per
+   placement. `AdBanner` mounts the native view **only while the screen is
+   focused**, and the native module's `BannerCache` owns the request pipeline:
+   it destroys the banner when the screen detaches and loads a fresh one on the
+   next attach. Reusing the same creative across screens is **not possible** in
+   Unity Ads 4.21 — `BannerView` (Android) and `UADSBannerView` (iOS) expose only
+   `load`/`destroy`, with no show/resume, and the SDK ends the impression when
+   the view leaves the window (`Finished showing ad` in logcat on detach).
+   Reparenting a shown banner therefore renders blank. Requests are debounced to
+   at most one per 5s per placement (a guard against navigation loops, not
+   Unity's ~30s auto-refresh interval, which does not apply to explicit loads of
+   a fresh banner). A failed load is not terminal — after the fast retries the
+   cache keeps re-requesting on a 60s idle cadence.
 
 Both the Android and iOS banner APIs in Unity Ads 4.21 are marked deprecated
 (`UADSBannerView` → `UADSBannerAd`, `UADSBannerViewDelegate` →
@@ -141,12 +176,17 @@ version.
 - [x] **Provider migration**: dependency, config plugin, IDs, web stub, aliases,
       docs and privacy copy now use Unity Ads.
 - [x] **Unity Ads apps + placements created** (Game IDs above, 4 placements).
-- [ ] **app-ads.txt updated + deployed** (`web/public/app-ads.txt` → deploy web).
+- [x] **app-ads.txt updated + deployed** (`web/public/app-ads.txt` → deploy web;
+      verified live at `https://somosmerki.app/app-ads.txt`, HTTP 200 on
+      2026-11-23).
 - [ ] **SKAdNetworkItems** included in the next iOS build (already in `app.json`).
 - [ ] **Unity Payments / W-8BEN** completed in the dashboard.
-- [ ] **Build + submit** Android (AAB) and iOS with the new native module.
-- [ ] **Test**: banner on home/history/profile/cart, interstitial after
-      checkout and every 10 scans; premium users see none.
+- [ ] **Build + submit** Android (AAB) and iOS with the current native module
+      (banner lifecycle + request cache).
+- [ ] **Test on iOS device** (dev build + production) — Android dev build
+      verified 2026-11-24.
+- [ ] **Verify production delivery**: Unity dashboard should show both apps as
+      verified; watch impressions/fill for at least a week after release.
 - [ ] **Google Play Console → Data safety**: declare "Advertising or marketing" +
       ad/device IDs (partner: Unity Ads).
 - [ ] **App Store Connect → App Privacy**: Device ID for third-party advertising,

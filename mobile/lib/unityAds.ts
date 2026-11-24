@@ -29,18 +29,24 @@ export function initializeAds(gameId: string, testMode: boolean): Promise<boolea
 
 /**
  * Initializes the SDK once per app run. Every caller shares the same promise, so
- * ads components can wait for readiness instead of racing the SDK boot.
+ * ads components can wait for readiness instead of racing the SDK boot. A failed
+ * attempt is not cached: the next caller — or the foreground retry in the root
+ * layout — gets a fresh attempt instead of ads staying dead for the whole run.
  */
 export function ensureAdsInitialized(gameId: string, testMode: boolean): Promise<boolean> {
   if (!initPromise) {
     initPromise = initializeAds(gameId, testMode)
       .then(initialized => {
         ready = initialized;
+        if (!initialized) {
+          initPromise = null;
+        }
         notify();
         return initialized;
       })
       .catch(() => {
         ready = false;
+        initPromise = null;
         notify();
         return false;
       });

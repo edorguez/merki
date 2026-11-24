@@ -2,34 +2,34 @@ import ExpoModulesCore
 import UIKit
 import UnityAds
 
+/// Thin container for the placement banner owned by `BannerCache`. The cache
+/// keeps one banner alive per placement and reparents it here while the screen
+/// is attached, so navigation reuses the already-loaded creative instead of
+/// destroying it and waiting for Unity's refresh window.
 public class UnityBannerView: ExpoView {
-  private static let bannerSize = CGSize(width: 320, height: 50)
-  private static let initRetryInterval: TimeInterval = 1.0
-  private static let maxInitRetries = 10
-  private static let loadRetryInterval: TimeInterval = 8.0
-  private static let maxLoadRetries = 2
+  private static let bannerSize = BannerCache.bannerSize
 
   /// Emitted once the banner is loaded and safe to show. JS keeps the ad card
   /// collapsed until this fires so free users never see an empty white card.
   let onAdLoaded = EventDispatcher()
 
-  /// Emitted when the banner definitively failed after all retries.
+  /// Emitted when the banner failed after all fast retries.
   let onAdError = EventDispatcher()
 
   var placementId: String? {
     didSet {
-      if placementId != oldValue { reload() }
+      guard placementId != oldValue else { return }
+
+      if let previous = oldValue, !previous.isEmpty {
+        BannerCache.shared.destroyPlacement(placementId: previous, holder: self)
+      }
+      if let current = placementId, !current.isEmpty, window != nil {
+        BannerCache.shared.acquire(placementId: current, holder: self)
+      }
     }
   }
 
   private let container = UIView()
-
-  private var bannerView: UADSBannerView?
-  private var initAttempts = 0
-  private var loadAttempts = 0
-
-  /// Invalidates callbacks scheduled by a previous reload.
-  private var generation = 0
 
   public required init(appContext: AppContext? = nil) {
     super.init(appContext: appContext)
@@ -45,102 +45,45 @@ public class UnityBannerView: ExpoView {
     ])
   }
 
-  private func reload() {
-    generation += 1
-    let current = generation
+  public override func didMoveToWindow() {
+    super.didMoveToWindow()
 
-    // Props arrive one by one, so coalesce reloads onto the next run loop
-    // iteration instead of loading a banner once per prop.
-    DispatchQueue.main.async { [weak self] in
-      guard let self, self.generation == current else { return }
-      self.removeBanner()
-      self.initAttempts = 0
-      self.loadAttempts = 0
-      self.loadBanner(generation: current)
+    guard let placementId, !placementId.isEmpty else { return }
+
+    if window != nil {
+      print("[UnityAds] banner: attached placement=\(placementId)")
+      BannerCache.shared.acquire(placementId: placementId, holder: self)
+    } else {
+      print("[UnityAds] banner: detached placement=\(placementId)")
+      BannerCache.shared.release(placementId: placementId, holder: self)
     }
   }
 
-  private func loadBanner(generation: Int) {
-    guard generation == self.generation else { return }
-    guard let placementId, !placementId.isEmpty else { return }
-
-    // A banner requested before the SDK finished initializing fails silently.
-    guard UnityAds.isInitialized() else {
-      guard initAttempts < Self.maxInitRetries else {
-        print("[UnityAds] banner: SDK never initialized, giving up after \(initAttempts) attempts")
-        onAdError([:])
-        return
-      }
-      initAttempts += 1
-      print("[UnityAds] banner: SDK not initialized yet (attempt \(initAttempts)/\(Self.maxInitRetries))")
-      DispatchQueue.main.asyncAfter(deadline: .now() + Self.initRetryInterval) { [weak self] in
-        self?.loadBanner(generation: generation)
-      }
+  func attachBannerView(_ banner: UADSBannerView) {
+    if banner.superview === container {
       return
     }
 
-    let size = Self.bannerSize
-    print("[UnityAds] banner: load placement=\(placementId) size=\(Int(size.width))x\(Int(size.height))")
-
-    let banner = UADSBannerView(placementId: placementId, size: size)
-    banner.delegate = self
-    banner.translatesAutoresizingMaskIntoConstraints = false
-
+    banner.removeFromSuperview()
     container.addSubview(banner)
+
     NSLayoutConstraint.activate([
       banner.centerXAnchor.constraint(equalTo: container.centerXAnchor),
       banner.topAnchor.constraint(equalTo: container.topAnchor),
-      banner.widthAnchor.constraint(equalToConstant: size.width),
-      banner.heightAnchor.constraint(equalToConstant: size.height),
+      banner.widthAnchor.constraint(equalToConstant: Self.bannerSize.width),
+      banner.heightAnchor.constraint(equalToConstant: Self.bannerSize.height),
     ])
-
-    bannerView = banner
-    banner.load()
   }
 
-  private func removeBanner() {
-    bannerView?.delegate = nil
-    bannerView?.removeFromSuperview()
-    bannerView = nil
+  func detachBannerView() {
+    container.subviews.forEach { $0.removeFromSuperview() }
   }
-}
 
-extension UnityBannerView: UADSBannerViewDelegate {
-  public func bannerViewDidLoad(_ bannerView: UADSBannerView) {
-    print("[UnityAds] banner: loaded placement=\(placementId ?? "-")")
+  func emitAdLoaded() {
     onAdLoaded([:])
   }
 
-  public func bannerViewDidShow(_ bannerView: UADSBannerView) {
-    print("[UnityAds] banner: shown placement=\(placementId ?? "-")")
-  }
-
-  public func bannerViewDidClick(_ bannerView: UADSBannerView) {
-    print("[UnityAds] banner: click placement=\(placementId ?? "-")")
-  }
-
-  public func bannerViewDidLeaveApplication(_ bannerView: UADSBannerView) {
-    print("[UnityAds] banner: left application")
-  }
-
-  public func bannerViewDidError(_ bannerView: UADSBannerView, error: UADSBannerError) {
-    // UADSBannerError subclasses NSError, so `code` is an Int here.
-    print("[UnityAds] banner: error code=\(error.code) message=\(error.localizedDescription)")
-
-    guard loadAttempts < Self.maxLoadRetries else {
-      print("[UnityAds] banner: giving up after \(loadAttempts) retries")
-      onAdError([:])
-      return
-    }
-
-    loadAttempts += 1
-    let current = generation
-    print("[UnityAds] banner: retry \(loadAttempts)/\(Self.maxLoadRetries) in \(Self.loadRetryInterval)s")
-
-    DispatchQueue.main.asyncAfter(deadline: .now() + Self.loadRetryInterval) { [weak self] in
-      guard let self, self.generation == current else { return }
-      self.removeBanner()
-      self.loadBanner(generation: current)
-    }
+  func emitAdError() {
+    onAdError([:])
   }
 }

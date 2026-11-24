@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { useIsPremium } from '../../store/authStore';
 import { INTERSTITIAL_PLACEMENT_ID } from '../../lib/ads';
 import { loadInterstitial, showInterstitial } from '../../lib/unityAds';
@@ -12,6 +13,19 @@ export function useInterstitialAd() {
   const isAdsReady = useAdsReady();
   const loadedRef = useRef(false);
   const cancelledRef = useRef(false);
+  // Bumped when the app returns to the foreground without a preloaded ad, so
+  // the load effect runs again instead of staying empty for the whole session
+  // after three failed attempts (low fill at launch, network hiccup, etc.).
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active' && !loadedRef.current) {
+        setReloadKey(key => key + 1);
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     cancelledRef.current = false;
@@ -53,7 +67,7 @@ export function useInterstitialAd() {
       cancelledRef.current = true;
       if (timer) clearTimeout(timer);
     };
-  }, [isPremium, isResolved, isAdsReady]);
+  }, [isPremium, isResolved, isAdsReady, reloadKey]);
 
   const show = useCallback(async (): Promise<void> => {
     // Bail out if the user became premium after the ad was loaded.
