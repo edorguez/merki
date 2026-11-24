@@ -3,12 +3,13 @@
  *
  * Run from the `mobile/` directory:
  *   npx ts-node --transpile-only \
- *     --compiler-options '{"module":"commonjs","moduleResolution":"node"}' \
+ *     --compiler-options '{"module":"commonjs","moduleResolution":"node","customConditions":null}' \
  *     scripts/ocr.regression.ts
  *
- * Covers the fixes for the three reported labels plus the prior scanner fixes
- * (dollar-symbol split, "#" price, Ref.KG weight, single-block dual currency)
- * to guard against regressions.
+ * Covers the fixes for the reported labels plus the prior scanner fixes
+ * (dollar-symbol split, "#" price, Ref.KG weight, single-block dual currency),
+ * the price-checker "Bs. <total> / # <USD>" layout, and per-kg weight columns
+ * that used to beat the final PRECIO TOTAL, to guard against regressions.
  */
 import { parseRecognizedText, type TextBlock } from '../lib/ocrParser';
 
@@ -119,6 +120,62 @@ const cases: Case[] = [
     name: 'prior — bare integer fallback',
     blocks: blocks(['ARROZ', 50], ['TOTAL', 30], ['25', 55]),
     expect: { priceUsd: 25, currency: 'USD' },
+  },
+  {
+    name: 'price checker — Bs total + "#" USD reference (merged block)',
+    blocks: blocks(['Cepillo Dental Colgate 360 Luminous\nWhite 2Pack\nBs. 7,204.63\n# 7.84', 55]),
+    expect: {
+      productName: 'Cepillo Dental Colgate 360 Luminous White 2Pack',
+      priceBs: 7204.63,
+      priceUsd: 7.84,
+      currency: 'BS',
+    },
+  },
+  {
+    name: 'price checker — Bs total + "#" USD reference (split blocks)',
+    blocks: blocks(
+      ['Cepillo Dental Colgate 360 Luminous', 40],
+      ['White 2Pack', 40],
+      ['Bs. 7,204.63', 55],
+      ['# 7.84', 55]
+    ),
+    expect: {
+      productName: 'Cepillo Dental Colgate 360 Luminous White 2Pack',
+      priceBs: 7204.63,
+      priceUsd: 7.84,
+      currency: 'BS',
+    },
+  },
+  {
+    name: 'weight label — per-kg column loses to PRECIO TOTAL (split blocks)',
+    blocks: blocks(
+      ['ALAS DE POLLO KG', 50],
+      ['FECH. EMP. 22-11-26 FECH. VENC. 28-11-26', 30],
+      ['PESO Precio/Kg. PRECIO TOTAL', 32],
+      ['Kg 0.650 $ 5.45', 40],
+      ['$', 60],
+      ['3.54', 60]
+    ),
+    expect: { productName: 'ALAS DE POLLO KG', priceUsd: 3.54, currency: 'USD' },
+  },
+  {
+    name: 'weight label — merged per-kg column loses to PRECIO TOTAL',
+    blocks: blocks(
+      ['ALAS DE POLLO KG', 50],
+      ['PESO Precio/Kg. PRECIO TOTAL', 32],
+      ['Precio/Kg. $ 5.45', 40],
+      ['PRECIO TOTAL $ 3.54', 55]
+    ),
+    expect: { productName: 'ALAS DE POLLO KG', priceUsd: 3.54, currency: 'USD' },
+  },
+  {
+    name: 'weight label — merged value row keeps the total (last price)',
+    blocks: blocks(
+      ['ALAS DE POLLO KG', 50],
+      ['PESO Precio/Kg. PRECIO TOTAL', 32],
+      ['Kg 0.650 $ 5.45 $ 3.54', 45]
+    ),
+    expect: { productName: 'ALAS DE POLLO KG', priceUsd: 3.54, currency: 'USD' },
   },
 ];
 

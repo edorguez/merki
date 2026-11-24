@@ -193,6 +193,26 @@ function extractAnyPrice(text: string): number | null {
   return extractLastPriceFromText(text) ?? extractLenientPriceFromText(text);
 }
 
+// Per-kg / per-unit reference headers ("Ref.KG", "Precio/Kg.", "$/kg"). The
+// number printed next to them is a unit price, never the product total.
+function isPerKgReference(text: string): boolean {
+  return (
+    /\bref\.?\s*(kg|g|lb|kilo)\b/i.test(text) ||
+    /\b(precio|prs?)\s*[.:/]?\s*(kg|kilo|lb)\b/i.test(text) ||
+    /\/\s*(kg|kilo)\b/i.test(text)
+  );
+}
+
+// A weight such as "0.650" (1-2 integer digits, exactly 3 decimals) printed
+// together with "kg". Thousand groups like "7,204.63" never qualify because
+// another decimal follows the group.
+function hasWeightValue(text: string): boolean {
+  const match = text.match(/\b\d{1,2}[.,]\d{3}\b(?![.,]\d)/);
+  if (!match) return false;
+  const value = parseFloat(match[0].replace(',', '.'));
+  return !isNaN(value) && value < 100;
+}
+
 // ML Kit sometimes splits a large currency glyph from its number ("$" and
 // "3.T7" become separate blocks). This block has no price of its own but
 // should be recombined with the adjacent number block.
@@ -224,21 +244,34 @@ function parseDecimal(s: string): number {
 // Labels sometimes print both prices on one line: "BS. 13.221,07/REF:21,41".
 // Detect that and return both real amounts so we don't convert one into the
 // other (which would misinterpret the dollar REF price as bolívares).
-function extractDualCurrencyPrices(text: string): { bs: number; usd: number } | null {
+function extractDualCurrencyPrices(
+  text: string,
+  exchangeRate?: number
+): { bs: number; usd: number } | null {
   const hasBs = /\bbs\.?\b/i.test(text);
-  const hasUsd = /\bref\.?\b|\$|usd/i.test(text);
-  if (!hasBs || !hasUsd) return null;
+  const hasExplicitUsd = /\bref\.?\b|\$|usd/i.test(text);
+  // Price checkers print the dollar reference below the Bs total with a "#"
+  // marker ("Bs. 7,204.63\n# 7.84").
+  const hasHashUsd = /#\s*\d/.test(text);
+  if (!hasBs || (!hasExplicitUsd && !hasHashUsd)) return null;
 
   const bsMatch = text.match(/\bbs\.?\s*:?\s*(\d[\d.,]*)/i);
   const usdMatch =
     text.match(/\bref\.?\s*:?\s*(\d[\d.,]*)/i) ||
     text.match(/\$\s*(\d[\d.,]*)/i) ||
     text.match(/\busd\s*:?\s*(\d[\d.,]*)/i);
-  if (!bsMatch || !usdMatch) return null;
+  const hashMatch = hasHashUsd ? text.match(/#\s*(\d[\d.,]*)/) : null;
+  if (!bsMatch || (!usdMatch && !hashMatch)) return null;
 
   const bs = parseDecimal(bsMatch[1]);
-  const usd = parseDecimal(usdMatch[1]);
+  const usd = parseDecimal(usdMatch ? usdMatch[1] : hashMatch![1]);
   if (isNaN(bs) || isNaN(usd) || bs <= 0 || usd <= 0) return null;
+  // "#" is a weaker marker than REF/$: only trust it when the amount matches
+  // the dollar rate instead of being a stray code number.
+  if (!usdMatch && exchangeRate && exchangeRate > 0) {
+    const ratio = bs / usd;
+    if (ratio < exchangeRate * 0.6 || ratio > exchangeRate * 1.4) return null;
+  }
   return { bs, usd };
 }
 
@@ -252,6 +285,33 @@ function extractBsRefPair(text: string): { bs: number; usd: number } | null {
   const usd = parseDecimal(match[2]);
   if (isNaN(bs) || isNaN(usd) || bs <= 0 || usd <= 0) return null;
   return { bs, usd };
+}
+
+// OCR sometimes drops both currency markers. When the same text carries two
+// price-formatted numbers whose ratio matches the dollar rate, they are a real
+// Bs/USD pair: use both instead of converting one into the other.
+function extractRateConsistentPair(
+  text: string,
+  exchangeRate: number
+): { bs: number; usd: number } | null {
+  if (!exchangeRate || exchangeRate <= 0) return null;
+  const matches = text.match(/\d{1,3}(?:[.,]\d{3})*[.,]\d{2}(?!\d)/g);
+  if (!matches || matches.length < 2) return null;
+
+  const values = matches.map(parseDecimal).filter(v => !isNaN(v) && v > 0);
+  let best: { bs: number; usd: number } | null = null;
+  let bestDeviation = Infinity;
+  for (const bs of values) {
+    for (const usd of values) {
+      if (bs <= usd) continue;
+      const deviation = Math.abs(bs / usd - exchangeRate) / exchangeRate;
+      if (deviation <= 0.25 && deviation < bestDeviation) {
+        bestDeviation = deviation;
+        best = { bs, usd };
+      }
+    }
+  }
+  return best;
 }
 
 // A price candidate found by the parsing helpers below.
@@ -316,6 +376,7 @@ function findBestPriceBlock(
   let priceSourceText = '';
   let bestBlockIndex = -1;
   let bestPriceScore = -99;
+  let bestPriceHeight = 0;
 
   // Weight-based labels (deli / meat / cheese) print both a per-kg price and
   // a final "PRECIO TOTAL". The header itself has no price, so the "total"
@@ -351,11 +412,17 @@ function findBestPriceBlock(
     // common ML Kit misreads of "kg" (e.g. "ko", "kq"). A block that also
     // carries a "#" price marker (e.g. "Crema ... 170Gr\n# 2.24") is a real
     // price, so it must not be penalized.
-    if (/\b\d+(?:[.,]\d+)?\s*(kg|kgs|ko|kq|g|gr|ml|l|lb|oz)\b/i.test(text) && !/#/.test(text)) {
+    const weightUnit = /\b\d+(?:[.,]\d+)?\s*(kg|kgs|ko|kq|g|gr|ml|l|lb|oz)\b/i.test(text);
+    // A weight column ("Kg 0.650 $ 5.45") mixes the weight and its per-kg
+    // price: the number belongs to the weight, not to the product total, so
+    // it must not beat the final price.
+    const weightColumn = /\bkg\b/i.test(text) && hasWeightValue(text);
+    if ((weightUnit || weightColumn) && !/#/.test(text)) {
       score -= 25;
     }
-    // Per-kg reference price ("Ref.KG", "Ref .KG") is not the product price.
-    if (/\bref\.?\s*(kg|g|lb|kilo)\b/i.test(text)) {
+    // Per-kg reference price ("Ref.KG", "Precio/Kg.", "$/kg") is never the
+    // product total, no matter its font size or proximity to the name.
+    if (isPerKgReference(text)) {
       return -Infinity;
     }
 
@@ -412,8 +479,10 @@ function findBestPriceBlock(
     if (price === null) return;
     const currency = detectCurrencyFromText(text);
     const score = scoreCandidate(text, fontHeight, idx, price, currency);
-    if (score > bestPriceScore) {
+    // On a tie the final price is the one printed in the largest font.
+    if (score > bestPriceScore || (score === bestPriceScore && fontHeight > bestPriceHeight)) {
       bestPriceScore = score;
+      bestPriceHeight = fontHeight;
       detectedPrice = price;
       detectedCurrency = hasRealCurrency(text, currency) ? currency : null;
       priceSourceText = text;
@@ -467,6 +536,38 @@ function findBestPriceBlock(
     sourceText: priceSourceText,
     blockIndex: bestBlockIndex,
   };
+}
+
+// When the detected price is in bolívares, labels (and price checkers) often
+// print the dollar reference in a neighbouring block: "$ 3.77", "# 7.84",
+// "REF 2.28". Use the printed amount instead of deriving it from the rate, but
+// only when the implied ratio matches the rate, so per-kg or unit prices
+// printed next to the total are never mistaken for the reference.
+function findAdjacentReferencePrice(
+  sortedBlocks: TextBlock[],
+  primaryBlockIndex: number,
+  primaryBs: number,
+  exchangeRate: number
+): number | null {
+  if (!exchangeRate || exchangeRate <= 0 || primaryBs <= 0) return null;
+
+  let best: number | null = null;
+  let bestDeviation = Infinity;
+  for (let i = 0; i < sortedBlocks.length; i++) {
+    if (i === primaryBlockIndex) continue;
+    if (primaryBlockIndex >= 0 && Math.abs(i - primaryBlockIndex) > PROXIMITY_RANGE) continue;
+    for (const line of sortedBlocks[i].lines) {
+      const text = line.text.trim();
+      if (isPerKgReference(text)) continue;
+      const price = extractAnyPrice(text);
+      if (price === null || price <= 0 || price >= primaryBs) continue;
+      const deviation = Math.abs(primaryBs / price - exchangeRate) / exchangeRate;
+      if (deviation > 0.25 || deviation >= bestDeviation) continue;
+      bestDeviation = deviation;
+      best = price;
+    }
+  }
+  return best;
 }
 
 // Fallback: parse the raw OCR text line by line for a price.
@@ -606,7 +707,7 @@ export function parseRecognizedText(
     findFlatTextPrice(text) ??
     findLenientBlockPrice(sortedBlocks, SMALL_PRINT_THRESHOLD);
 
-  const detectedPrice: number | null = priceCandidate?.price ?? null;
+  let detectedPrice: number | null = priceCandidate?.price ?? null;
   let detectedCurrency: 'BS' | 'USD' | null = priceCandidate?.currency ?? null;
   const priceSourceText = priceCandidate?.sourceText ?? '';
   const bestBlockIndex = priceCandidate?.blockIndex ?? -1;
@@ -640,17 +741,26 @@ export function parseRecognizedText(
   let priceBs: number;
   let priceUsd: number;
 
-  // Labels sometimes show both prices on one line ("BS. 13.221,07/REF:21,41"
-  // or "1.842,42/Ref:2,28"). When that happens, use both real prices instead of
-  // converting one.
+  // Labels sometimes show both prices together ("BS. 13.221,07/REF:21,41",
+  // "1.842,42/Ref:2,28", "Bs. 7,204.63\n# 7.84") or print the dollar reference
+  // in a neighbouring block. When the real pair is found, use both amounts
+  // instead of converting one into the other.
   const dualPrices =
-    extractDualCurrencyPrices(priceSourceText) ?? extractBsRefPair(priceSourceText);
+    extractDualCurrencyPrices(priceSourceText, exchangeRate) ??
+    extractBsRefPair(priceSourceText) ??
+    extractRateConsistentPair(priceSourceText, exchangeRate);
   if (dualPrices) {
     priceBs = dualPrices.bs;
     priceUsd = dualPrices.usd;
+    // Keep the reported primary price coherent: the Bs amount is the product
+    // price and the dollar amount is its reference.
+    detectedPrice = dualPrices.bs;
+    detectedCurrency = 'BS';
   } else if (detectedCurrency === 'BS') {
     priceBs = detectedPrice;
-    priceUsd = convertBsToUsd(detectedPrice, exchangeRate);
+    priceUsd =
+      findAdjacentReferencePrice(sortedBlocks, bestBlockIndex, detectedPrice, exchangeRate) ??
+      convertBsToUsd(detectedPrice, exchangeRate);
   } else {
     priceUsd = detectedPrice;
     priceBs = convertUsdToBs(detectedPrice, exchangeRate);
